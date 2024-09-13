@@ -1,0 +1,36 @@
+services:
+  user-service:
+    build:
+      context: ./microservices/user-service
+    ports:
+      - "3001:3000"
+    volumes:
+      - ./microservices/user-service:/usr/src/app  # Bind mount for hot-reloading
+      - /usr/src/app/node_modules  # Prevent node_modules overwriting
+    environment:
+      - NODE_ENV=development
+    command: nodemon app.js
+
+  booking-service:
+    build:
+      context: ./microservices/booking-service
+    ports:
+      - "3002:3000"
+    volumes:
+      - ./microservices/booking-service:/usr/src/app
+      - /usr/src/app/node_modules
+    environment:
+      - NODE_ENV=development
+    command: nodemon app.js
+
+  gym-occupancy-service:
+    build:
+      context: ./microservices/gym-occupancy-service
+    ports:
+      - "3003:3000"
+    volumes:
+      - ./microservices/gym-occupancy-service:/usr/src/app
+      - /usr/src/app/node_modules
+    environment:
+      - NODE_ENV=development
+    command: nodemon app.js

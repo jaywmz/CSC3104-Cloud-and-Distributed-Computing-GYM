@@ -1,0 +1,30 @@
+# Use a lightweight node image
+FROM node:lts-alpine
+
+# Set environment variable to development
+ENV NODE_ENV=development
+
+# Set the working directory
+WORKDIR /usr/src/app
+
+# Copy package.json and package-lock.json to install dependencies
+COPY ["package.json", "package-lock.json*", "./"]
+
+# Install dependencies
+RUN npm install --silent
+
+# Copy the rest of the application code
+COPY . .
+
+# Install nodemon for hot reloading
+RUN npm install -g nodemon
+
+# Expose the port the app runs on
+EXPOSE 3000
+
+# Healthcheck: Define a health check that will periodically hit the /health endpoint
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+  CMD curl -f http://localhost:3000/health || exit 1
+
+# Use nodemon to watch for changes and restart the server
+CMD ["nodemon", "app.js"]
