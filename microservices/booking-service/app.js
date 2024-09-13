@@ -41,7 +41,7 @@ app.use(function(err, req, res, next) {
 // Add this to listen on the correct port
 const PORT = process.env.PORT || 3000;  // Use PORT from environment or default to 3000
 app.listen(PORT, () => {
-  console.log(`Booking Service is running on port ${PORT}`);
+  console.log(`Booking Service is running on port testing123 ${PORT}`);
 });
 
 module.exports = app;
