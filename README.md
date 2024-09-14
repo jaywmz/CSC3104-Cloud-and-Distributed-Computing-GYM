@@ -44,8 +44,7 @@ This project is part of the **CSC3104 - Cloud and Distributed Computing** course
 ```
 ## Project Structure
 ```
-GymOccupancy/
-│
+
 ├── microservices/                  
 │   ├── user-service/                        # User Service Microservice
 │   │   ├── src/                             # Source code directory
