@@ -92,6 +92,8 @@ GymOccupancy/
   - [Single-Page Application Explanation](https://www.youtube.com/watch?v=eIxDHgzGCnY)
   - [What is gRPC?](https://www.youtube.com/watch?v=gnchfOojMk4)
   - [VS Code Node.js Docker Quickstart](https://code.visualstudio.com/docs/containers/quickstart-node)
+  - [Kubernates in 5 mins](https://www.youtube.com/watch?v=PH-2FfFD2PU)
+  - [kubernates by bytebytego](https://www.youtube.com/watch?v=TlHvYWVUZyc)
 
 ## Testing the Setup
 
