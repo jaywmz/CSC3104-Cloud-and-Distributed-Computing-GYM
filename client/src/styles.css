@@ -1,0 +1,24 @@
+.App {
+    text-align: center;
+  }
+  
+  button {
+    margin-top: 20px;
+    padding: 10px 20px;
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+  }
+  
+  button:hover {
+    background-color: #45a049;
+  }
+  
+  canvas {
+    width: 100%;  /* Ensure canvas fits the modal */
+    height: 400px; /* Set a fixed height for the floor plan */
+    display: block;
+  }
+  

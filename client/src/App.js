@@ -1,25 +1,21 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useState } from "react";
+import GymFloorPlan from "./components/GymFloorPlan"; // Your existing gym floor plan
+import Modal from "./components/modal";
+import "./styles.css";
 
-function App() {
+export default function App() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <h2>Gym Occupancy Floor Plan</h2>
+      <button onClick={() => setIsModalOpen(true)}>Open Gym Floor Plan</button>
+
+      {/* Modal */}
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+        <h2>Gym Floor Plan</h2>
+        <GymFloorPlan />
+      </Modal>
     </div>
   );
 }
-
-export default App;
