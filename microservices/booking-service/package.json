@@ -6,6 +6,7 @@
     "start": "node ./bin/www"
   },
   "dependencies": {
+    "@grpc/grpc-js": "^1.11.2",
     "booking-service": "file:",
     "cookie-parser": "~1.4.4",
     "debug": "~2.6.9",

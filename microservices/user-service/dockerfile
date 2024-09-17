@@ -20,11 +20,7 @@ COPY . .
 RUN npm install -g nodemon
 
 # Expose the port the app runs on
-EXPOSE 3000
-
-# Healthcheck: Define a health check that will periodically hit the /health endpoint
-HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
-  CMD curl -f http://localhost:3000/health || exit 1
+EXPOSE 50000
 
 # Use nodemon to automatically restart the app on code changes
-CMD ["nodemon", "app.js"]
+CMD ["nodemon", "server.js"]
