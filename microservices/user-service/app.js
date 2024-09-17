@@ -19,8 +19,23 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Middleware to enable CORS
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*'); // Allow all origins
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS'); // Allow specific methods
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization'); // Allow specific headers
+  next();
+});
+
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
+
+// Test router to test connection to booking service
+app.use('/test', (req, res) => {
+  console.log("MESSAGE: User Service /test called");
+  res.json({ message: "User Service is running" });
+});
+
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
