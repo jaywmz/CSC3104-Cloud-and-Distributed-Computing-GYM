@@ -6,9 +6,9 @@ The 'Express' portion of it (REST API) has been removed
 - user-service now uses server.js NOT app.js
 
 To run:
-- Similar to instruction at the beginning -> 'docker-compose up --build' at project folder
-- Might need to 'npm install @grpc/grpc-js' inside \user-service\ folder if docker did not auto install
+- Need to 'npm install @grpc/grpc-js' inside \user-service\ folder if docker did not auto install
 (I didn't push the node-modules folder because its too large. Just run the docker-compose and see if docker auto install. if not then manual install thru command above)
+- Similar to instruction at the beginning -> 'docker-compose up --build' at project folder
 - Once built and no error, can just run the container through Docker Desktop again
 
 To test GRPC:
