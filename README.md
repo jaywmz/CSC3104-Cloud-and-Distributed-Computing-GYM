@@ -44,7 +44,7 @@ Navigate to the user-service folder:
 
 Start the server:
 - node server.js
-This will start the user microservice on http://localhost:5001 and also start the gRPC service on port 50051.
+- This will start the user microservice on http://localhost:5001 and also start the gRPC service on port 50051.
 
 # 3. Run the Booking Service:
 Navigate to the booking-service folder:
@@ -52,7 +52,7 @@ Navigate to the booking-service folder:
 
 Start the server:
 - node server.js
-This will start the booking microservice on http://localhost:5002 and communicate with the user-service via gRPC.
+- This will start the booking microservice on http://localhost:5002 and communicate with the user-service via gRPC.
 
 # 4. Run the Frontend (Gym Booking):
 Navigate to the gym-booking folder:
@@ -60,12 +60,12 @@ Navigate to the gym-booking folder:
 
 Start the React frontend:
 - npm start
-This will start the React frontend on http://localhost:3000.
+- This will start the React frontend on http://localhost:3000.
 
 # 5. Interacting with the System:
 Register a User:
 - Go to http://localhost:3000/register.
-Create a new user by providing a username, password, and role (either user or admin).
+- Create a new user by providing a username, password, and role (either user or admin).
 
 Log In:
 - Go to http://localhost:3000/login.
@@ -74,7 +74,7 @@ Log In:
 Create a Booking:
 - After logging in, go to http://localhost:3000/bookings.
 - Create a new gym booking.
-The booking service will validate the user through gRPC with the user service and store the booking in the database.
+- The booking service will validate the user through gRPC with the user service and store the booking in the database.
 
 # Explanation of Services:
 User-Service:
