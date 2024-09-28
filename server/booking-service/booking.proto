@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-service UserService {
+service BookingService {
     rpc GetBooking (bookingId) returns (booking);
     rpc GetAllBookings (voidNoParam) returns (bookingList)
     rpc GetUserBookings (bookingUser) returns (bookingList);

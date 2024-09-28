@@ -25,6 +25,11 @@ const bookingSchema = new mongoose.Schema({
 });
 const Booking = mongoose.model('Booking', bookingSchema);
 
+// gRPC server setup
+const PROTO_PAT_BOOKING = path.join(__dirname, 'booking.proto');
+const packageDefinitionBooking = protoLoader.loadSync(PROTO_PATH, {});
+const bookingProto = grpc.loadPackageDefinition(packageDefinition).BookingService;
+
 // gRPC client setup for user-service
 const PROTO_PATH = path.join(__dirname, '../user-service/user.proto');
 const packageDefinition = protoLoader.loadSync(PROTO_PATH, {});
@@ -82,8 +87,52 @@ app.get('/api/bookings', (req, res) => {
     });
 });
 
+// gRPC methods implementation
+const getBooking = async (call, callback) => {
+
+};
+
+const getAllBookings = async (call, callback) => {
+
+};
+
+const getUserBookings = async (call, callback) => {
+
+};
+
+const getGymBookings = async (call, callback) => {
+
+};
+
+const createBooking = async (call, callback) => {
+  
+};
+
+const deleteBooking = async (call, callback) => {
+  
+};
+
+const updateBooking = async (call, callback) => {
+    
+}; 
+
 // Start the server
 const PORT = process.env.PORT || 5002;
 app.listen(PORT, () => {
   console.log(`Booking service running on port ${PORT}`);
+});
+
+// Start gRPC server
+const grpcServer = new grpc.Server();
+grpcServer.addService(bookingProto.service, { 
+  GetBooking:  getBooking,
+  GetAllBookings: getAllBookings,
+  GetUserBookings: getUserBookings,
+  GetGymBookings: getGymBookings,
+  CreateBooking: createBooking,
+  DeleteBooking: deleteBooking,
+  UpdateBooking: updateBooking,
+});
+grpcServer.bindAsync('0.0.0.0:50052', grpc.ServerCredentials.createInsecure(), () => {
+  console.log('gRPC server running at http://0.0.0.0:50052');
 });
