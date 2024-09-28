@@ -12,12 +12,12 @@ const App = () => {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        
-        {/* Protect the bookings and occupancy routes */}
+
+        {/* Protected Routes with role-based access */}
         <Route 
           path="/bookings" 
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['user']}>  {/* Only allow users */}
               <BookingPage />
             </ProtectedRoute>
           } 
@@ -26,7 +26,7 @@ const App = () => {
         <Route 
           path="/occupancy-page" 
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['admin']}> {/* Only allow admins */}
               <OccupancyPage />
             </ProtectedRoute>
           } 

@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { loginUser } from '../services/userService';
+import { useNavigate } from 'react-router-dom'; // Import the useNavigate hook
 
 const LoginPage = () => {
   const [credentials, setCredentials] = useState({ username: '', password: '' });
   const [message, setMessage] = useState('');
+  const navigate = useNavigate(); // Initialize useNavigate for redirection
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -22,10 +24,9 @@ const LoginPage = () => {
       // Redirect user based on role
       const decodedToken = JSON.parse(atob(response.token.split('.')[1])); // Decode JWT token
       if (decodedToken.role === 'admin') {
-        window.location.href = '/occupancy-page'; // Redirect to occupancy page for admin users
+        navigate('/occupancy-page'); // Use navigate to redirect to occupancy page for admin users
       } else {
-        window.location.href = '/bookings';   // Redirect to the booking page for regular users
-
+        navigate('/bookings'); // Use navigate to redirect to the booking page for regular users
       }
       
     } catch (error) {
