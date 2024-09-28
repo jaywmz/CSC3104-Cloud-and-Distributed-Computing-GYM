@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+service UserService {
+    rpc GetBooking (bookingId) returns (booking);
+    rpc GetAllBookings (voidNoParam) returns (bookingList)
+    rpc GetUserBookings (bookingUser) returns (bookingList);
+    rpc GetGymBookings (gymId) returns (bookingList);
+    rpc CreateBooking (booking) returns (booking);
+    rpc UpdateBooking (booking) returns (booking);
+    rpc DeleteBooking (booking) returns (booking);
+}
+
+message voidNoParam {}
+
+message bookingId {
+    int32 id = 1;
+}
+
+message bookingUser {
+    string user = 1;
+}
+
+message gymId {
+    int32 id = 1;
+}
+
+message booking {
+    int32 id = 1;
+    string user = 2;
+    string slot = 3;
+    int32 gymId = 4;
+}
+
+message bookingList {
+    repeated booking bookingList = 1;
+}
