@@ -22,9 +22,10 @@ const LoginPage = () => {
       // Redirect user based on role
       const decodedToken = JSON.parse(atob(response.token.split('.')[1])); // Decode JWT token
       if (decodedToken.role === 'admin') {
-        window.location.href = '/admin-dashboard'; // Redirect to admin dashboard
+        window.location.href = '/occupancy-page'; // Redirect to occupancy page for admin users
       } else {
-        window.location.href = '/gym-dashboard';   // Redirect to gym dashboard
+        window.location.href = '/bookings';   // Redirect to the booking page for regular users
+
       }
       
     } catch (error) {
