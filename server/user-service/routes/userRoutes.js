@@ -4,22 +4,23 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { MongoClient } = require('mongodb');
 
-// MongoDB connection string with your password
+// MongoDB connection string
 const uri = "mongodb+srv://csc3104grp:9FzZmCSr5pDRqvL9@userdatabase.gfv68.mongodb.net/?retryWrites=true&w=majority&appName=userdatabase";
-const client = new MongoClient(uri);
-const dbName = 'userdatabase';
+let db;
 
 // Middleware to connect to MongoDB
 async function connectDB() {
-  if (!client.isConnected) {
+  if (!db) {
+    const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
     await client.connect();
+    db = client.db('userdatabase'); // Reuse the connection for future requests
   }
-  return client.db(dbName);
+  return db;
 }
 
 // Register
 router.post('/register', async (req, res) => {
-  const { username, password, role } = req.body;  // Expecting a role parameter (admin/user)
+  const { username, password, role } = req.body;
   const db = await connectDB();
   const usersCollection = db.collection('users');
 
@@ -29,7 +30,7 @@ router.post('/register', async (req, res) => {
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
-  const newUser = { username, password: hashedPassword, role: role || 'user' };  // Default role is 'user'
+  const newUser = { username, password: hashedPassword, role: role || 'user' };
   await usersCollection.insertOne(newUser);
 
   res.status(201).send({ message: 'User registered successfully' });
