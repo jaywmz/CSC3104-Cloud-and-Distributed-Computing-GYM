@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { registerUser } from '../services/userService';
 
 const RegisterPage = () => {
-  const [userData, setUserData] = useState({ username: '', password: '' });
+  const [userData, setUserData] = useState({ username: '', password: '', role: 'user' });
   const [message, setMessage] = useState('');
 
   const handleChange = (e) => {
@@ -38,6 +38,10 @@ const RegisterPage = () => {
           value={userData.password}
           onChange={handleChange}
         />
+        <select name="role" value={userData.role} onChange={handleChange}>
+          <option value="user">User</option>
+          <option value="admin">Admin</option>
+        </select>
         <button type="submit">Register</button>
       </form>
       {message && <p>{message}</p>}

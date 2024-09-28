@@ -14,8 +14,19 @@ const LoginPage = () => {
     e.preventDefault();
     try {
       const response = await loginUser(credentials);
-      setMessage('Login successful! Token: ' + response.token);
-      // You could store the token in localStorage/sessionStorage if needed
+      
+      // Store the token in localStorage
+      localStorage.setItem('token', response.token);
+      setMessage('Login successful!');
+      
+      // Redirect user based on role
+      const decodedToken = JSON.parse(atob(response.token.split('.')[1])); // Decode JWT token
+      if (decodedToken.role === 'admin') {
+        window.location.href = '/admin-dashboard'; // Redirect to admin dashboard
+      } else {
+        window.location.href = '/gym-dashboard';   // Redirect to gym dashboard
+      }
+      
     } catch (error) {
       setMessage('Login failed. Please check your credentials.');
     }
