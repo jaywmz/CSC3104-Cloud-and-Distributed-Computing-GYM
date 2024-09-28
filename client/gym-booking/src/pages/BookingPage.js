@@ -47,9 +47,18 @@ const BookingPage = () => {
     }
   };
 
+  // Handle logout
+  const handleLogout = () => {
+    localStorage.removeItem('token'); // Remove the token from localStorage
+    window.location.href = '/login';  // Redirect to the login page
+  };
+
   return (
     <div>
       <h2>Gym Bookings</h2>
+
+      {/* Logout Button */}
+      <button onClick={handleLogout} style={{ float: 'right' }}>Logout</button>
 
       {/* Loading Indicator */}
       {loading && <p>Loading...</p>}

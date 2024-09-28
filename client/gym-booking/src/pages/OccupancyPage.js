@@ -19,9 +19,19 @@ const OccupancyPage = () => {
     fetchOccupancy(); // Refresh occupancy data
   };
 
+  // Handle logout
+  const handleLogout = () => {
+    localStorage.removeItem('token'); // Remove the token from localStorage
+    window.location.href = '/login';  // Redirect to the login page
+  };
+
   return (
     <div>
       <h2>Gym Occupancy</h2>
+
+      {/* Logout Button */}
+      <button onClick={handleLogout} style={{ float: 'right' }}>Logout</button>
+
       <p>
         Current: {occupancy.current} / {occupancy.max}
       </p>
