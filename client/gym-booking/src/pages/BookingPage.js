@@ -5,36 +5,58 @@ const BookingPage = () => {
   const [bookings, setBookings] = useState([]);
   const [newBooking, setNewBooking] = useState({ user: '', slot: '' });
   const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(false); // Loading state
 
   useEffect(() => {
     fetchBookings();
   }, []);
 
+  // Function to fetch bookings from the API
   const fetchBookings = async () => {
-    const data = await getBookings();
-    setBookings(data);
+    setLoading(true);
+    try {
+      const data = await getBookings();
+      setBookings(data);
+      setMessage(''); // Clear any previous message
+    } catch (error) {
+      setMessage('Failed to fetch bookings.');
+    } finally {
+      setLoading(false); // Stop the loading state
+    }
   };
 
+  // Handle input changes for the booking form
   const handleChange = (e) => {
     const { name, value } = e.target;
     setNewBooking({ ...newBooking, [name]: value });
   };
 
+  // Handle form submission to create a new booking
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true); // Start loading when submitting
     try {
       await createBooking(newBooking);
       setMessage('Booking created successfully!');
-      fetchBookings(); // Refresh the bookings list
+      fetchBookings(); // Refresh the bookings list after successful submission
+      setNewBooking({ user: '', slot: '' }); // Reset the form
     } catch (error) {
       setMessage('Failed to create booking.');
+    } finally {
+      setLoading(false); // Stop loading
     }
   };
 
   return (
     <div>
       <h2>Gym Bookings</h2>
+
+      {/* Loading Indicator */}
+      {loading && <p>Loading...</p>}
+
+      {/* Display bookings */}
       <ul>
+        {bookings.length === 0 && !loading && <p>No bookings found.</p>}
         {bookings.map((booking) => (
           <li key={booking.id}>
             {booking.user} - {booking.slot}
@@ -43,6 +65,8 @@ const BookingPage = () => {
       </ul>
 
       <h3>Create a New Booking</h3>
+
+      {/* Booking form */}
       <form onSubmit={handleSubmit}>
         <input
           type="text"
@@ -50,6 +74,7 @@ const BookingPage = () => {
           placeholder="User"
           value={newBooking.user}
           onChange={handleChange}
+          required
         />
         <input
           type="text"
@@ -57,9 +82,12 @@ const BookingPage = () => {
           placeholder="Time Slot"
           value={newBooking.slot}
           onChange={handleChange}
+          required
         />
-        <button type="submit">Create Booking</button>
+        <button type="submit" disabled={loading}>Create Booking</button>
       </form>
+
+      {/* Display success/error message */}
       {message && <p>{message}</p>}
     </div>
   );
