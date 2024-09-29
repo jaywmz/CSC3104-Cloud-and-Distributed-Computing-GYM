@@ -35,3 +35,14 @@ export const createBooking = async (bookingData) => {
     throw error;
   }
 };
+
+// Function to delete a booking
+export const deleteBooking = async (bookingId) => {
+  try {
+    const response = await axios.delete(`${API_URL}/delete/${bookingId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting booking:', error.response || error.message);
+    throw error;
+  }
+};

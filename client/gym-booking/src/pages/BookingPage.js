@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { getBookings, createBooking, getUserBookings } from '../services/bookingService';
+import { getBookings, createBooking, getUserBookings, deleteBooking } from '../services/bookingService';
 
 const BookingPage = () => {
   const [bookings, setBookings] = useState([]);
@@ -16,15 +16,37 @@ const BookingPage = () => {
   const fetchBookings = async () => {
     setLoading(true);
     try {
-      const data = await getBookings();
+      const allBookings = await getBookings();
+      if(!allBookings) {
+        setBookings([]);
+      }else{
+        setBookings(allBookings);
+      }
       const userBookings = await getUserBookings();
-      setBookings(data);
-      setUserBookings(userBookings);
+      if(!userBookings) {
+        setUserBookings([]);
+      }else{
+        setUserBookings(userBookings);
+      }
       setMessage(''); // Clear any previous message
     } catch (error) {
       setMessage('Failed to fetch bookings.');
     } finally {
       setLoading(false); // Stop the loading state
+    }
+  };
+
+  // Function to delete a booking through the API using the booking ID
+  const handleDeleteBooking = async (id) => {
+    setLoading(true);
+    try {
+      await deleteBooking(id);
+      await fetchBookings(); // Refresh the bookings list after successful deletion
+      setMessage('Booking deleted successfully!');
+    } catch (error) {
+      setMessage('Failed to delete booking.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -40,9 +62,9 @@ const BookingPage = () => {
     setLoading(true); // Start loading when submitting
     try {
       await createBooking(newBooking);
+      await fetchBookings(); // Refresh the bookings list after successful submission
       setMessage('Booking created successfully!');
-      fetchBookings(); // Refresh the bookings list after successful submission
-      setNewBooking({ user: '', slot: '' }); // Reset the form
+      setNewBooking({ user: '', slot: '', gymId: '' }); // Reset the form
     } catch (error) {
       setMessage('Failed to create booking.');
     } finally {
@@ -58,7 +80,7 @@ const BookingPage = () => {
 
   return (
     <div>
-      <h2>Gym Bookings</h2>
+      <h2>All Gym Bookings</h2>
 
       {/* Logout Button */}
       <button onClick={handleLogout} style={{ float: 'right' }}>Logout</button>
@@ -72,6 +94,7 @@ const BookingPage = () => {
         {bookings.map((booking) => (
           <li key={booking.id}>
             {booking.user} - {booking.slot} - {booking.gymId}
+            <button onClick={() => handleDeleteBooking(booking.id)}>Delete</button>
           </li>
         ))}
       </ul>
@@ -111,6 +134,7 @@ const BookingPage = () => {
       {message && <p>{message}</p>}
 
       <h3>Your Bookings</h3>
+      <h5>(currenty only showing bookings by "fekux" user, for now)</h5>
         {/* Display bookings */}
       <ul>
         {userBookings.length === 0 && !loading && <p>No bookings found.</p>}

@@ -111,13 +111,13 @@ app.get('/api/bookings', (req, res) => {
 // Route to fetch user's bookings
 // USING THE EXPRESS ROUTE TO CALL THE gRPC METHOD (REMOVE THIS WHEN REMOVING EXPRESS ROUTES)
 app.get('/api/bookings/user', (req, res) => {
-  // TODO: need to figure out how to get the current logged in username. Currently the "username" is hardcode as "felix"
+  // TODO: need to figure out how to get the current logged in username. Currently the "username" is hardcode as "fekux"
   // The bottom line is a suggested method of getting the "user" field from the request query in bookingService.js, but how to get the username from the logged in user into the query? 
   // (same issue of how get username)
   // const { user } = req.query;
 
   // bookingClient.GetUserBookings({ user }, (error, response) => { // This line is for when the user cosntant is properly implemented
-  bookingClient.GetUserBookings({ "user":"felix" }, (error, response) => {
+  bookingClient.GetUserBookings({ "user":"fekux" }, (error, response) => {
     if (error) {
       console.error('Error fetching user bookings via gRPC:', error);
       res.status(500).send('Failed to fetch user bookings.');
@@ -127,11 +127,44 @@ app.get('/api/bookings/user', (req, res) => {
   });
 });
 
-// gRPC methods implementation
-async function getBooking (call, callback) {
+// Route to delete a booking
+// USING THE EXPRESS ROUTE TO CALL THE gRPC METHOD (REMOVE THIS WHEN REMOVING EXPRESS ROUTES)
+app.delete('/api/bookings/delete/:id', (req, res) => {
+  const { id } = req.params;
+  bookingClient.DeleteBooking({ id }, (error, response) => {
+    if (error) {
+      console.error('Error deleting booking via gRPC:', error);
+      res.status(500).send('Failed to delete booking.');
+    } else {
+      res.status(200).json(response);
+    }
+  });
+});
 
+// gRPC methods implementation
+// Get a booking by ID
+async function getBooking (call, callback) {
+  try{
+    const db = await connectDB();
+    const bookingsCollection = db.collection('bookings');
+    const booking = await bookingsCollection.findOne({ id: call.request.id });
+    if(booking){
+      callback(null, booking);
+    }else{
+      callback({
+        code: grpc.status.NOT_FOUND,
+        details: 'Booking not found',
+      });
+    }
+  }catch(error){
+    callback({
+      code: grpc.status.INTERNAL,
+      details: 'Error fetching booking',
+    });
+  }
 };
 
+// Get all bookings
 async function getAllBookings (call, callback) {
   try{
     const db = await connectDB();
@@ -147,6 +180,7 @@ async function getAllBookings (call, callback) {
 
 };
 
+// Get all bookings for a user
 async function getUserBookings (call, callback) {
   try{
     const db = await connectDB();
@@ -161,10 +195,22 @@ async function getUserBookings (call, callback) {
   }
 };
 
+// Get all bookings for a gym
 async function getGymBookings (call, callback) {
-
+  try{
+    const db = await connectDB();
+    const bookingsCollection = db.collection('bookings');
+    const bookings = await bookingsCollection.find({ gymId: call.request.gymId }).toArray();
+    callback(null, {bookings});
+  }catch(error){
+    callback({
+      code: grpc.status.INTERNAL,
+      details: 'Error fetching gym bookings',
+    });
+  }
 };
 
+// Create a new booking
 async function createBooking (call, callback) {
   try{
     const db = await connectDB();
@@ -183,10 +229,31 @@ async function createBooking (call, callback) {
 
 };
 
+// Delete a booking by id
 async function deleteBooking(call, callback) {
-  
+  // TODO: check if the user is the owner of the booking first before deleting (currently doesn't check)
+  try{
+    const db = await connectDB();
+    const bookingsCollection = db.collection('bookings');
+    const booking = await bookingsCollection.findOne({ id: call.request.id });
+    if(booking){
+      await bookingsCollection.deleteOne({ id: call.request.id });
+      callback(null, {});
+    }else{
+      callback({
+        code: grpc.status.NOT_FOUND,
+        details: 'Booking not found',
+      });
+    }
+  }catch(error){
+    callback({
+      code: grpc.status.INTERNAL,
+      details: 'Error deleting booking',
+    });
+  }
 };
 
+// Update a booking
 async function updateBooking(call, callback){
     
 }; 
