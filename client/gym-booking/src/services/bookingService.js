@@ -25,6 +25,17 @@ export const getUserBookings = async () => {
   }
 };
 
+// Function to fetch gym's bookings
+export const getGymBookings = async (gymId) => {
+  try {
+    const response = await axios.get(`${API_URL}/gym/${gymId}`);
+    return response.data;
+  }catch (error) {
+    console.error('Error fetching gym bookings:', error.response || error.message);
+    throw error
+  }
+};
+
 // Function to create a new booking
 export const createBooking = async (bookingData) => {
   try {

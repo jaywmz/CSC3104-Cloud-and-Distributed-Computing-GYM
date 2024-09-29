@@ -21,7 +21,7 @@ message bookingUser {
 }
 
 message gymId {
-    int32 id = 1;
+    int32 gymId = 1;
 }
 
 message booking {

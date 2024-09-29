@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { getBookings, createBooking, getUserBookings, deleteBooking } from '../services/bookingService';
+import { getBookings, createBooking, getUserBookings, deleteBooking, getGymBookings } from '../services/bookingService';
 
 const BookingPage = () => {
   const [bookings, setBookings] = useState([]);
   const [userBookings, setUserBookings] = useState([]);
+  const [gymBookings, setGymBookings] = useState([]);
+  const [gymIdSearch, setGymIdSearch] = useState('');
   const [newBooking, setNewBooking] = useState({ user: '', slot: '', gymId: '' });
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false); // Loading state
@@ -72,6 +74,25 @@ const BookingPage = () => {
     }
   };
 
+  // Handle form submission to search bookings by Gym ID
+  const handleGymBookingSearch = async (e) => {
+    e.preventDefault();
+    setLoading(true); // Start loading when submitting
+    try {
+      const gymBookings = await getGymBookings(gymIdSearch);
+      if(!gymBookings) {
+        setGymBookings([]);
+      }else{
+        setGymBookings(gymBookings);
+      }
+      setMessage(''); // Clear any previous message
+    } catch (error) {
+      setMessage('Failed to fetch bookings.');
+    } finally {
+      setLoading(false); // Stop loading
+    }
+}
+
   // Handle logout
   const handleLogout = () => {
     localStorage.removeItem('token'); // Remove the token from localStorage
@@ -81,6 +102,7 @@ const BookingPage = () => {
   return (
     <div>
       <h2>All Gym Bookings</h2>
+      <h5>Format: user - slot - gymId</h5>
 
       {/* Logout Button */}
       <button onClick={handleLogout} style={{ float: 'right' }}>Logout</button>
@@ -139,6 +161,29 @@ const BookingPage = () => {
       <ul>
         {userBookings.length === 0 && !loading && <p>No bookings found.</p>}
         {userBookings.map((booking) => (
+          <li key={booking.id}>
+            {booking.user} - {booking.slot} - {booking.gymId}
+          </li>
+        ))}
+      </ul>
+
+      <h3>Search bookings by Gym ID</h3>
+      <form onSubmit={handleGymBookingSearch}>
+        <input
+          type="text"
+          name="gymIdSearch"
+          placeholder="Gym ID Search"
+          value={gymIdSearch}
+          onChange={(e) => setGymIdSearch(e.target.value)}
+          required
+        />
+        <button type="submit" disabled={loading}>Search</button>
+      </form>
+
+      {/* Display bookings */}
+      <ul>
+        {gymBookings.length === 0 && !loading && <p>No bookings found.</p>}
+        {gymBookings.map((booking) => (
           <li key={booking.id}>
             {booking.user} - {booking.slot} - {booking.gymId}
           </li>

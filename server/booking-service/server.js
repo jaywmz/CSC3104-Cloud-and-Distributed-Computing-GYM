@@ -3,7 +3,6 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const grpc = require('@grpc/grpc-js');
 const protoLoader = require('@grpc/proto-loader');
-const mongoose = require('mongoose');
 const path = require('path');
 
 // Initialize the Express app
@@ -12,13 +11,8 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
-// // MongoDB connection using your connection string
-// const MONGO_URI = 'mongodb+srv://lichtwx:LzKVEOYBsPgSETjX@cluster0.obfql.mongodb.net/bookingServiceDB?retryWrites=true&w=majority';
-// mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
-//   .then(() => console.log('Connected to MongoDB'))
-//   .catch((err) => console.error('Error connecting to MongoDB:', err));
 
-// Mongoose User Schema (could reuse the same MongoDB connection from routes)
+// MongoDB connection string
 const { MongoClient } = require('mongodb');
 const uri = "mongodb+srv://lichtwx:LzKVEOYBsPgSETjX@cluster0.obfql.mongodb.net/?retryWrites=true&w=majority";
 let db;
@@ -26,20 +20,12 @@ let db;
 // Middleware to connect to MongoDB
 async function connectDB() {
   if (!db) {
-    const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+    const client = new MongoClient(uri);
     await client.connect();
     db = client.db('bookingServiceDB');
   }
   return db;
 }
-
-// Mongoose Booking Schema and Model
-// const bookingSchema = new mongoose.Schema({
-//   user: { type: String, required: true },
-//   slot: { type: String, required: true },
-//   gymId: { type: , required: true },
-// });
-// const Booking = mongoose.model('Booking', bookingSchema);
 
 // gRPC server setup for booking-service
 const PROTO_PATH_BOOKING = path.join(__dirname, 'booking.proto');
@@ -121,6 +107,20 @@ app.get('/api/bookings/user', (req, res) => {
     if (error) {
       console.error('Error fetching user bookings via gRPC:', error);
       res.status(500).send('Failed to fetch user bookings.');
+    } else {
+      res.status(200).json(response.bookings);
+    }
+  });
+});
+
+// Route to fetch gym's bookings
+// USING THE EXPRESS ROUTE TO CALL THE gRPC METHOD (REMOVE THIS WHEN REMOVING EXPRESS ROUTES)
+app.get('/api/bookings/gym/:gymId', (req, res) => {
+  const { gymId } = req.params;
+  bookingClient.GetGymBookings({ gymId }, (error, response) => {
+    if (error) {
+      console.error('Error fetching gym bookings via gRPC:', error);
+      res.status(500).send('Failed to fetch gym bookings.');
     } else {
       res.status(200).json(response.bookings);
     }
