@@ -2,7 +2,7 @@ syntax = "proto3";
 
 service BookingService {
     rpc GetBooking (bookingId) returns (booking);
-    rpc GetAllBookings (voidNoParam) returns (bookingList)
+    rpc GetAllBookings (voidNoParam) returns (bookingList);
     rpc GetUserBookings (bookingUser) returns (bookingList);
     rpc GetGymBookings (gymId) returns (bookingList);
     rpc CreateBooking (booking) returns (booking);
@@ -32,5 +32,5 @@ message booking {
 }
 
 message bookingList {
-    repeated booking bookingList = 1;
+    repeated booking bookings = 1;
 }

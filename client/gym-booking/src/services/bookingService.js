@@ -14,6 +14,17 @@ export const getBookings = async () => {
   }
 };
 
+// Function to fetch user's bookings
+export const getUserBookings = async () => {
+  try {
+    const response = await axios.get(`${API_URL}/user`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching user bookings:', error.response || error.message);
+    throw error;
+  }
+};
+
 // Function to create a new booking
 export const createBooking = async (bookingData) => {
   try {

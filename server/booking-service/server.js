@@ -12,23 +12,39 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
-// MongoDB connection using your connection string
-const MONGO_URI = 'mongodb+srv://lichtwx:LzKVEOYBsPgSETjX@cluster0.obfql.mongodb.net/bookingServiceDB?retryWrites=true&w=majority';
-mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log('Connected to MongoDB'))
-  .catch((err) => console.error('Error connecting to MongoDB:', err));
+// // MongoDB connection using your connection string
+// const MONGO_URI = 'mongodb+srv://lichtwx:LzKVEOYBsPgSETjX@cluster0.obfql.mongodb.net/bookingServiceDB?retryWrites=true&w=majority';
+// mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+//   .then(() => console.log('Connected to MongoDB'))
+//   .catch((err) => console.error('Error connecting to MongoDB:', err));
+
+// Mongoose User Schema (could reuse the same MongoDB connection from routes)
+const { MongoClient } = require('mongodb');
+const uri = "mongodb+srv://lichtwx:LzKVEOYBsPgSETjX@cluster0.obfql.mongodb.net/?retryWrites=true&w=majority";
+let db;
+
+// Middleware to connect to MongoDB
+async function connectDB() {
+  if (!db) {
+    const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+    await client.connect();
+    db = client.db('bookingServiceDB');
+  }
+  return db;
+}
 
 // Mongoose Booking Schema and Model
-const bookingSchema = new mongoose.Schema({
-  user: { type: String, required: true },
-  slot: { type: String, required: true }
-});
-const Booking = mongoose.model('Booking', bookingSchema);
+// const bookingSchema = new mongoose.Schema({
+//   user: { type: String, required: true },
+//   slot: { type: String, required: true },
+//   gymId: { type: , required: true },
+// });
+// const Booking = mongoose.model('Booking', bookingSchema);
 
-// gRPC server setup
-const PROTO_PAT_BOOKING = path.join(__dirname, 'booking.proto');
-const packageDefinitionBooking = protoLoader.loadSync(PROTO_PATH, {});
-const bookingProto = grpc.loadPackageDefinition(packageDefinition).BookingService;
+// gRPC server setup for booking-service
+const PROTO_PATH_BOOKING = path.join(__dirname, 'booking.proto');
+const packageDefinitionBooking = protoLoader.loadSync(PROTO_PATH_BOOKING, {});
+const bookingProto = grpc.loadPackageDefinition(packageDefinitionBooking).BookingService;
 
 // gRPC client setup for user-service
 const PROTO_PATH = path.join(__dirname, '../user-service/user.proto');
@@ -37,6 +53,11 @@ const userProto = grpc.loadPackageDefinition(packageDefinition).UserService;
 
 // Create a gRPC client for user-service
 const userClient = new userProto('localhost:50051', grpc.credentials.createInsecure());
+
+// Create a gRPC client for booking-service
+// REMOVE THIS WHEN REMOVING EXPRESS ROUTES (this is so that the express routes can call the gRPC methods)
+// in future it calls the gRPC methods directly, not through express routes
+const bookingClient = new bookingProto('localhost:50052', grpc.credentials.createInsecure());
 
 // Function to validate user using gRPC
 const checkUser = (username, callback) => {
@@ -53,7 +74,7 @@ const checkUser = (username, callback) => {
 
 // Booking route with gRPC call to validate user and saving to MongoDB
 app.post('/api/bookings', (req, res) => {
-  const { user, slot } = req.body;
+  const { user, slot, gymId } = req.body;
 
   // Validate user with gRPC
   checkUser(user, (userData) => {
@@ -61,58 +82,112 @@ app.post('/api/bookings', (req, res) => {
       return res.status(404).send('User not found');
     }
 
-    // Create and save booking in MongoDB
-    const newBooking = new Booking({ user, slot });
-    newBooking.save()
-      .then((booking) => {
-        console.log('Booking created:', booking);  // Log booking creation
-        res.status(201).json(booking);
-      })
-      .catch((error) => {
-        console.error('Error saving booking:', error);
-        res.status(500).send('Failed to create booking.');
-      });
+    // Save booking to MongoDB using createBooking gRPC method
+    bookingClient.CreateBooking({ user, slot, gymId }, (error, booking) => {
+      if (error) {
+        console.error('Error creating booking via gRPC:', error);
+        res.status(500).send('Failed to create booking');
+      }else {
+        res.status(200).json(booking);
+      }
+    });
+
   });
 });
 
 // Route to fetch all bookings
+// USING THE EXPRESS ROUTE TO CALL THE gRPC METHOD (REMOVE THIS WHEN REMOVING EXPRESS ROUTES)
 app.get('/api/bookings', (req, res) => {
-  Booking.find()
-    .then((bookings) => {
-      res.status(200).json(bookings);
-    })
-    .catch((error) => {
-      console.error('Error fetching bookings:', error);
+  bookingClient.GetAllBookings({}, (error, response) => {
+    if (error) {
+      console.error('Error fetching bookings via gRPC:', error);
       res.status(500).send('Failed to fetch bookings.');
-    });
+    } else {
+      res.status(200).json(response.bookings);
+    }
+  });
+});
+
+// Route to fetch user's bookings
+// USING THE EXPRESS ROUTE TO CALL THE gRPC METHOD (REMOVE THIS WHEN REMOVING EXPRESS ROUTES)
+app.get('/api/bookings/user', (req, res) => {
+  // TODO: need to figure out how to get the current logged in username. Currently the "username" is hardcode as "felix"
+  // The bottom line is a suggested method of getting the "user" field from the request query in bookingService.js, but how to get the username from the logged in user into the query? 
+  // (same issue of how get username)
+  // const { user } = req.query;
+
+  // bookingClient.GetUserBookings({ user }, (error, response) => { // This line is for when the user cosntant is properly implemented
+  bookingClient.GetUserBookings({ "user":"felix" }, (error, response) => {
+    if (error) {
+      console.error('Error fetching user bookings via gRPC:', error);
+      res.status(500).send('Failed to fetch user bookings.');
+    } else {
+      res.status(200).json(response.bookings);
+    }
+  });
 });
 
 // gRPC methods implementation
-const getBooking = async (call, callback) => {
+async function getBooking (call, callback) {
 
 };
 
-const getAllBookings = async (call, callback) => {
+async function getAllBookings (call, callback) {
+  try{
+    const db = await connectDB();
+    const bookingsCollection = db.collection('bookings');
+    const bookings = await bookingsCollection.find({}).toArray();
+    callback(null, {bookings});
+  }catch(error){
+    callback({
+      code: grpc.status.INTERNAL,
+      details: 'Error fetching bookings',
+    });
+  }
 
 };
 
-const getUserBookings = async (call, callback) => {
+async function getUserBookings (call, callback) {
+  try{
+    const db = await connectDB();
+    const bookingsCollection = db.collection('bookings');
+    const bookings = await bookingsCollection.find({ user: call.request.user }).toArray();
+    callback(null, {bookings});
+  }catch(error){
+    callback({
+      code: grpc.status.INTERNAL,
+      details: 'Error fetching user bookings',
+    });
+  }
+};
+
+async function getGymBookings (call, callback) {
 
 };
 
-const getGymBookings = async (call, callback) => {
+async function createBooking (call, callback) {
+  try{
+    const db = await connectDB();
+    const bookingsCollection = db.collection('bookings');
+    const booking = call.request;
+    booking.id = Math.floor(Math.random() * 1000); // Generate a random ID (but can be duplicated right now with existing entries)
+    booking.gymId = parseInt(booking.gymId); // Convert gymId string to integer
+    bookingsCollection.insertOne(booking);
+    callback(null, booking);
+  }catch(error){
+    callback({
+      code: grpc.status.INTERNAL,
+      details: 'Error creating booking',
+    });
+  }
 
 };
 
-const createBooking = async (call, callback) => {
+async function deleteBooking(call, callback) {
   
 };
 
-const deleteBooking = async (call, callback) => {
-  
-};
-
-const updateBooking = async (call, callback) => {
+async function updateBooking(call, callback){
     
 }; 
 
