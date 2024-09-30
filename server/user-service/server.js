@@ -5,6 +5,7 @@ const userRoutes = require('./routes/userRoutes');
 const grpc = require('@grpc/grpc-js');
 const protoLoader = require('@grpc/proto-loader');
 const path = require('path');
+const jwt = require('jsonwebtoken');
 
 // Initialize the Express app
 const app = express();
@@ -119,12 +120,29 @@ const getAllUsers = async (call, callback) => {
   }
 };
 
+function getUserFromToken(call, callback) {
+  try {
+    jwt.verify(call.request.token, 'secretkey', (error, user) => {
+      if (error) {
+        return reject(error);
+      }
+        callback(null, { username: user.username});
+    });
+  }catch (error) {
+    callback({
+      code: grpc.status.INTERNAL,
+      details: "Internal server error",
+    });
+  }
+};
+
 // Start gRPC server
 const grpcServer = new grpc.Server();
 grpcServer.addService(userProto.service, {
   GetUser: getUser,
   GetUserByRole: getUserByRole,
   GetAllUsers: getAllUsers,
+  GetUserFromToken: getUserFromToken
 });
 
 grpcServer.bindAsync('0.0.0.0:50051', grpc.ServerCredentials.createInsecure(), () => {

@@ -15,6 +15,7 @@ app.use(bodyParser.json());
 
 // MongoDB connection string
 const { MongoClient } = require('mongodb');
+const { get } = require('http');
 const uri = "mongodb+srv://lichtwx:LzKVEOYBsPgSETjX@cluster0.obfql.mongodb.net/?retryWrites=true&w=majority";
 let db;
 
@@ -34,14 +35,17 @@ async function connectDB() {
   return db;
 }
 
-// JWT Middleware to extract and decode the token
-function authenticateToken(token) {
+// Function to call user gRPC to convert token to user
+function getUserFromToken(token) {
   return new Promise((resolve, reject) => {
-    jwt.verify(token, 'secretkey', (error, user) => {
+    userClient.GetUserFromToken({ token }, (error, response) => {
       if (error) {
-        return reject(error);
+        return reject({
+          code: grpc.status.INTERNAL,
+          details: 'Error fetching user bookings',
+        });
       }
-      resolve(user.username);
+      resolve(response.username);
     });
   });
 }
@@ -205,7 +209,7 @@ async function getUserBookings (call, callback) {
     const token = call.metadata.get('authorization')[0];
     
     // Decode the token to get the user
-    const user = await authenticateToken(token);
+    const user = await getUserFromToken(token);
 
     const db = await connectDB();
     const bookingsCollection = db.collection('bookings');
@@ -259,7 +263,7 @@ async function createBooking (call, callback) {
     const token = call.metadata.get('authorization')[0];
     
     // Decode the token to get the user
-    const user = await authenticateToken(token);
+    const user = await getUserFromToken(token);
 
     const db = await connectDB();
     const bookingsCollection = db.collection('bookings');
@@ -282,8 +286,9 @@ async function deleteBooking(call, callback) {
   try{
     // Extract the token from the metadata
     const token = call.metadata.get('authorization')[0];
+    
     // Decode the token to get the user
-    const user = await authenticateToken(token);
+    const user = await getUserFromToken(token);
 
     const db = await connectDB();
     const bookingsCollection = db.collection('bookings');

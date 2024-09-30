@@ -4,6 +4,7 @@ service UserService {
   rpc GetUser (UserRequest) returns (UserResponse);
   rpc GetUserByRole (RoleRequest) returns (UserListResponse);
   rpc GetAllUsers (Empty) returns (UserListResponse);
+  rpc GetUserFromToken (Token) returns (UserRequest);
 }
 
 message UserRequest {
@@ -28,6 +29,10 @@ message UserResponse {
 
 message UserListResponse {
   repeated User users = 1;
+}
+
+message Token {
+  string token = 1;
 }
 
 message Empty {}
