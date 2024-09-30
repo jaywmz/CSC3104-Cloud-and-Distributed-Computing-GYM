@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { getBookings, createBooking, getUserBookings, deleteBooking, getGymBookings } from '../services/bookingService';
+import 'bootstrap/dist/css/bootstrap.min.css'; // Import Bootstrap
+
 
 const BookingPage = () => {
   const [bookings, setBookings] = useState([]);
@@ -46,7 +48,11 @@ const BookingPage = () => {
       await fetchBookings(); // Refresh the bookings list after successful deletion
       setMessage('Booking deleted successfully!');
     } catch (error) {
-      setMessage('Failed to delete booking.');
+      if (error.response.status === 403) {
+        setMessage('Failed: You are not authorized to delete this booking.');
+      } else {
+        setMessage('Failed to delete booking.');
+      }
     } finally {
       setLoading(false);
     }
@@ -101,85 +107,116 @@ const BookingPage = () => {
 
   return (
     <div>
-      <h2>All Gym Bookings</h2>
-      <h5>Format: user - slot - gymId</h5>
+      {/* Navbar */}
+      <nav className="navbar navbar-expand-lg navbar-light bg-light">
+        <div className="container-fluid">
+          <a className="navbar-brand" href="/">Gym Booking</a>
+          <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span className="navbar-toggler-icon"></span>
+          </button>
+          <div className="collapse navbar-collapse" id="navbarNav">
+            <ul className="navbar-nav ms-auto">
+              {/* <li className="nav-item">
+                <a className="nav-link" href="/login">Login</a>
+              </li>
+              <li className="nav-item">
+                <a className="nav-link" href="/register">Register</a>
+              </li> */}
+              <li className="nav-item">
+                <button onClick={handleLogout} className="btn btn-danger">Logout</button>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </nav>
 
-      {/* Logout Button */}
-      <button onClick={handleLogout} style={{ float: 'right' }}>Logout</button>
 
-      {/* Loading Indicator */}
-      {loading && <p>Loading...</p>}
+      <div className="container mt-4 mb-4">
+        {/* Display success/error message */}
+        {message && <div className={`alert ${message.includes('Failed') ? 'alert-danger' : 'alert-success'}`}>{message}</div>}      
+        <h2>All Gym Bookings</h2>
+        <h5>Format: user - slot - gymId</h5>
 
-      {/* Display bookings */}
-      <ul>
-        {bookings.length === 0 && !loading && <p>No bookings found.</p>}
-        {bookings.map((booking) => (
-          <li key={booking.id}>
-            {booking.user} - {booking.slot} - {booking.gymId}
-            <button onClick={() => handleDeleteBooking(booking.id)}>Delete</button>
-          </li>
-        ))}
-      </ul>
+        {/* Loading Indicator */}
+        {loading && <div className="alert alert-info">Loading...</div>}
 
-      <h3>Create a New Booking</h3>
-
-      {/* Booking form */}
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          name="slot"
-          placeholder="Time Slot"
-          value={newBooking.slot}
-          onChange={handleChange}
-          required
-        />
-        <input
-          type="text"
-          name="gymId"
-          placeholder="Gym ID"
-          value={newBooking.gymId}
-          onChange={handleChange}
-          required
-        />
-        <button type="submit" disabled={loading}>Create Booking</button>
-      </form>
-
-      {/* Display success/error message */}
-      {message && <p>{message}</p>}
-
-      <h3>Your Bookings</h3>
         {/* Display bookings */}
-      <ul>
-        {userBookings.length === 0 && !loading && <p>No bookings found.</p>}
-        {userBookings.map((booking) => (
-          <li key={booking.id}>
-            {booking.user} - {booking.slot} - {booking.gymId}
-          </li>
-        ))}
-      </ul>
+        <ul className="list-group mb-4">
+          {bookings.length === 0 && !loading && <li className="list-group-item">No bookings found.</li>}
+          {bookings.map((booking) => (
+            <li key={booking.id} className="list-group-item d-flex justify-content-between align-items-center">
+              {booking.user} - {booking.slot} - {booking.gymId}
+              <button onClick={() => handleDeleteBooking(booking.id)} className="btn btn-danger btn-sm">Delete</button>
+            </li>
+          ))}
+        </ul>
 
-      <h3>Search bookings by Gym ID</h3>
-      <form onSubmit={handleGymBookingSearch}>
-        <input
-          type="text"
-          name="gymIdSearch"
-          placeholder="Gym ID Search"
-          value={gymIdSearch}
-          onChange={(e) => setGymIdSearch(e.target.value)}
-          required
-        />
-        <button type="submit" disabled={loading}>Search</button>
-      </form>
+        <h3>Create a New Booking</h3>
 
-      {/* Display bookings */}
-      <ul>
-        {gymBookings.length === 0 && !loading && <p>No bookings found.</p>}
-        {gymBookings.map((booking) => (
-          <li key={booking.id}>
-            {booking.user} - {booking.slot} - {booking.gymId}
-          </li>
-        ))}
-      </ul>
+        {/* Booking form */}
+        <form onSubmit={handleSubmit} className="mb-4">
+          <div className="mb-3">
+            <input
+              type="text"
+              name="slot"
+              className="form-control"
+              placeholder="Time Slot"
+              value={newBooking.slot}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <div className="mb-3">
+            <input
+              type="text"
+              name="gymId"
+              className="form-control"
+              placeholder="Gym ID"
+              value={newBooking.gymId}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <button type="submit" className="btn btn-primary" disabled={loading}>Create Booking</button>
+        </form>
+
+        <h3>Your Bookings</h3>
+        {/* Display user bookings */}
+        <ul className="list-group mb-4">
+          {userBookings.length === 0 && !loading && <li className="list-group-item">No bookings found.</li>}
+          {userBookings.map((booking) => (
+            <li key={booking.id} className="list-group-item">
+              {booking.user} - {booking.slot} - {booking.gymId}
+            </li>
+          ))}
+        </ul>
+
+        <h3>Search bookings by Gym ID</h3>
+        <form onSubmit={handleGymBookingSearch} className="mb-4">
+          <div className="mb-3">
+            <input
+              type="text"
+              name="gymIdSearch"
+              className="form-control"
+              placeholder="Gym ID Search"
+              value={gymIdSearch}
+              onChange={(e) => setGymIdSearch(e.target.value)}
+              required
+            />
+          </div>
+          <button type="submit" className="btn btn-primary" disabled={loading}>Search</button>
+        </form>
+
+        {/* Display gym bookings */}
+        <ul className="list-group">
+          {gymBookings.length === 0 && !loading && <li className="list-group-item">No bookings found.</li>}
+          {gymBookings.map((booking) => (
+            <li key={booking.id} className="list-group-item">
+              {booking.user} - {booking.slot} - {booking.gymId}
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 };

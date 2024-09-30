@@ -168,7 +168,7 @@ app.delete('/api/bookings/delete/:id', authenticateToken, (req, res) => {
         res.status(200).json(response);
       });
     } else {
-      res.status(403).send('You are not authorized to delete this booking.');
+      return res.status(403).send('Failed: You are not authorized to delete this booking.');
     }
   });
 });
@@ -280,7 +280,6 @@ async function createBooking (call, callback) {
 
 // Delete a booking by id
 async function deleteBooking(call, callback) {
-  // TODO: check if the user is the owner of the booking first before deleting (currently doesn't check)
   try{
     const db = await connectDB();
     const bookingsCollection = db.collection('bookings');
