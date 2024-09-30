@@ -5,15 +5,46 @@ const userRoutes = require('./routes/userRoutes');
 const grpc = require('@grpc/grpc-js');
 const protoLoader = require('@grpc/proto-loader');
 const path = require('path');
-const { MongoClient } = require('mongodb');
+const jwt = require('jsonwebtoken');
 
+// Initialize the Express app
 const app = express();
 const PORT = process.env.PORT || 5001;
 
 app.use(cors());
 app.use(bodyParser.json());
 
-// MongoDB connection string
+// User Routes
+app.use('/api/users', userRoutes);
+
+// JWT Middleware to extract and decode the token
+const authenticateToken = (req, res, next) => {
+  const token = req.header('Authorization')?.split(' ')[1];
+  if (!token) {
+    return res.status(401).send('Access denied. No token provided.');
+  }
+
+  jwt.verify(token, 'secretkey', (err, user) => {
+    if (err) {
+      return res.status(403).send('Invalid token.');
+    }
+    req.user = user; // Attach the user info (decoded JWT) to the request
+    next();
+  });
+};
+
+// Start Express server
+app.listen(PORT, () => {
+  console.log(`User service running on port ${PORT}`);
+});
+
+// gRPC server setup
+const PROTO_PATH = path.join(__dirname, 'user.proto');
+const packageDefinition = protoLoader.loadSync(PROTO_PATH, {});
+const userProto = grpc.loadPackageDefinition(packageDefinition).UserService;
+
+// Mongoose User Schema (could reuse the same MongoDB connection from routes)
+const { MongoClient } = require('mongodb');
 const uri = "mongodb+srv://csc3104grp:9FzZmCSr5pDRqvL9@userdatabase.gfv68.mongodb.net/?retryWrites=true&w=majority";
 let db;
 
@@ -33,12 +64,7 @@ async function connectDB() {
   return db;
 }
 
-// gRPC server setup
-const PROTO_PATH = path.join(__dirname, 'user.proto');
-const packageDefinition = protoLoader.loadSync(PROTO_PATH, {});
-const userProto = grpc.loadPackageDefinition(packageDefinition).UserService;
-
-// gRPC method implementation with error handling
+// gRPC method implementation
 const getUser = async (call, callback) => {
   try {
     const db = await connectDB();
@@ -50,14 +76,13 @@ const getUser = async (call, callback) => {
     } else {
       callback({
         code: grpc.status.NOT_FOUND,
-        details: 'User not found',
+        details: "User not found",
       });
     }
   } catch (error) {
-    console.error('Error in getUser:', error);
     callback({
       code: grpc.status.INTERNAL,
-      details: 'Internal server error',
+      details: "Internal server error",
     });
   }
 };
@@ -67,9 +92,4 @@ const grpcServer = new grpc.Server();
 grpcServer.addService(userProto.service, { GetUser: getUser });
 grpcServer.bindAsync('0.0.0.0:50051', grpc.ServerCredentials.createInsecure(), () => {
   console.log('gRPC server running at http://0.0.0.0:50051');
-});
-
-// Start Express server
-app.listen(PORT, () => {
-  console.log(`User service running on port ${PORT}`);
 });

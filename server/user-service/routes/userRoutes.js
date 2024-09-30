@@ -24,7 +24,7 @@ async function connectDB() {
   return db;
 }
 
-// Register
+// Register route
 router.post('/register', async (req, res) => {
   const { username, password, role } = req.body;
 
