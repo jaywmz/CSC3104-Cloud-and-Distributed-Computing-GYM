@@ -6,7 +6,7 @@ const BookingPage = () => {
   const [userBookings, setUserBookings] = useState([]);
   const [gymBookings, setGymBookings] = useState([]);
   const [gymIdSearch, setGymIdSearch] = useState('');
-  const [newBooking, setNewBooking] = useState({ user: '', slot: '', gymId: '' });
+  const [newBooking, setNewBooking] = useState({slot: '', gymId: '' });
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false); // Loading state
 
@@ -66,7 +66,7 @@ const BookingPage = () => {
       await createBooking(newBooking);
       await fetchBookings(); // Refresh the bookings list after successful submission
       setMessage('Booking created successfully!');
-      setNewBooking({ user: '', slot: '', gymId: '' }); // Reset the form
+      setNewBooking({ slot: '', gymId: '' }); // Reset the form
     } catch (error) {
       setMessage('Failed to create booking.');
     } finally {
@@ -127,14 +127,6 @@ const BookingPage = () => {
       <form onSubmit={handleSubmit}>
         <input
           type="text"
-          name="user"
-          placeholder="User"
-          value={newBooking.user}
-          onChange={handleChange}
-          required
-        />
-        <input
-          type="text"
           name="slot"
           placeholder="Time Slot"
           value={newBooking.slot}
@@ -156,7 +148,6 @@ const BookingPage = () => {
       {message && <p>{message}</p>}
 
       <h3>Your Bookings</h3>
-      <h5>(currenty only showing bookings by "fekux" user, for now)</h5>
         {/* Display bookings */}
       <ul>
         {userBookings.length === 0 && !loading && <p>No bookings found.</p>}

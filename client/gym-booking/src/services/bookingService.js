@@ -17,7 +17,15 @@ export const getBookings = async () => {
 // Function to fetch user's bookings
 export const getUserBookings = async () => {
   try {
-    const response = await axios.get(`${API_URL}/user`);
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('No token found. Please log in first.');
+    }
+
+    const response = await axios.get(`${API_URL}/user`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
     return response.data;
   } catch (error) {
     console.error('Error fetching user bookings:', error.response || error.message);
@@ -39,7 +47,13 @@ export const getGymBookings = async (gymId) => {
 // Function to create a new booking
 export const createBooking = async (bookingData) => {
   try {
-    const response = await axios.post(API_URL, bookingData);
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('No token found. Please log in first.');
+    }
+    const response = await axios.post(API_URL, bookingData, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
     return response.data;
   } catch (error) {
     console.error('Error creating booking:', error.response || error.message);
@@ -50,7 +64,13 @@ export const createBooking = async (bookingData) => {
 // Function to delete a booking
 export const deleteBooking = async (bookingId) => {
   try {
-    const response = await axios.delete(`${API_URL}/delete/${bookingId}`);
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('No token found. Please log in first.');
+    }
+    const response = await axios.delete(`${API_URL}/delete/${bookingId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
     return response.data;
   } catch (error) {
     console.error('Error deleting booking:', error.response || error.message);

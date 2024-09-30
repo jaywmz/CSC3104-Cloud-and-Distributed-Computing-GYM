@@ -106,14 +106,11 @@ app.post('/api/bookings', authenticateToken, (req, res) => {
 
 // Route to fetch all bookings
 // USING THE EXPRESS ROUTE TO CALL THE gRPC METHOD (REMOVE THIS WHEN REMOVING EXPRESS ROUTES)
-
-app.get('/api/bookings/user', authenticateToken, (req, res) => {
-  const { username } = req.user; // Extract the username from the decoded token
-
-  bookingClient.GetUserBookings({ user: username }, (error, response) => {
+app.get('/api/bookings', (req, res) => {
+  bookingClient.GetAllBookings({}, (error, response) => {
     if (error) {
-      console.error('Error fetching user bookings via gRPC:', error);
-      res.status(500).send('Failed to fetch user bookings.');
+      console.error('Error fetching bookings via gRPC:', error);
+      res.status(500).send('Failed to fetch bookings.');
     } else {
       res.status(200).json(response.bookings);
     }
@@ -122,28 +119,22 @@ app.get('/api/bookings/user', authenticateToken, (req, res) => {
 
 // Route to fetch user's bookings
 // USING THE EXPRESS ROUTE TO CALL THE gRPC METHOD (REMOVE THIS WHEN REMOVING EXPRESS ROUTES)
-// TODO: need to figure out how to get the current logged in username. Currently the "username" is hardcode as "fekux"
-  // The bottom line is a suggested method of getting the "user" field from the request query in bookingService.js, but how to get the username from the logged in user into the query? 
-  // (same issue of how get username)
-  // const { user } = req.query;
-
-  // bookingClient.GetUserBookings({ user }, (error, response) => { // This line is for when the user cosntant is properly implemented
-// app.get('/api/bookings/user', (req, res) => {
+app.get('/api/bookings/user', authenticateToken, (req, res) => {
+    const { username } = req.user; // Extract the username from the decoded token
   
-//   bookingClient.GetUserBookings({ "user":"fekux" }, (error, response) => {
-//     if (error) {
-//       console.error('Error fetching user bookings via gRPC:', error);
-//       res.status(500).send('Failed to fetch user bookings.');
-//     } else {
-//       res.status(200).json(response.bookings);
-//     }
-//   });
-// });
+    bookingClient.GetUserBookings({ user: username }, (error, response) => {
+      if (error) {
+        console.error('Error fetching user bookings via gRPC:', error);
+        res.status(500).send('Failed to fetch user bookings.');
+      } else {
+        res.status(200).json(response.bookings);
+      }
+    });
+  });
 
 // Route to fetch gym's bookings
 // USING THE EXPRESS ROUTE TO CALL THE gRPC METHOD (REMOVE THIS WHEN REMOVING EXPRESS ROUTES)
-// Route to fetch gym's bookings
-app.get('/api/bookings/gym/:gymId', authenticateToken, (req, res) => {
+app.get('/api/bookings/gym/:gymId', (req, res) => {
   const { gymId } = req.params;
 
   bookingClient.GetGymBookings({ gymId }, (error, response) => {
@@ -158,7 +149,6 @@ app.get('/api/bookings/gym/:gymId', authenticateToken, (req, res) => {
 
 // Route to delete a booking
 // USING THE EXPRESS ROUTE TO CALL THE gRPC METHOD (REMOVE THIS WHEN REMOVING EXPRESS ROUTES)
-
 app.delete('/api/bookings/delete/:id', authenticateToken, (req, res) => {
   const { username } = req.user; // Extract the username from the token
   const { id } = req.params;
@@ -222,20 +212,20 @@ async function getAllBookings (call, callback) {
 
 };
 
-// // Get all bookings for a user
-// async function getUserBookings (call, callback) {
-//   try{
-//     const db = await connectDB();
-//     const bookingsCollection = db.collection('bookings');
-//     const bookings = await bookingsCollection.find({ user: call.request.user }).toArray();
-//     callback(null, {bookings});
-//   }catch(error){
-//     callback({
-//       code: grpc.status.INTERNAL,
-//       details: 'Error fetching user bookings',
-//     });
-//   }
-// };
+// Get all bookings for a user
+async function getUserBookings (call, callback) {
+  try{
+    const db = await connectDB();
+    const bookingsCollection = db.collection('bookings');
+    const bookings = await bookingsCollection.find({ user: call.request.user }).toArray();
+    callback(null, {bookings});
+  }catch(error){
+    callback({
+      code: grpc.status.INTERNAL,
+      details: 'Error fetching user bookings',
+    });
+  }
+};
 
 // Create a new booking
 async function createBooking(call, callback) {
@@ -255,39 +245,38 @@ async function createBooking(call, callback) {
   }
 }
 
-// // Get all bookings for a gym
-// async function getGymBookings (call, callback) {
-//   try{
-//     const db = await connectDB();
-//     const bookingsCollection = db.collection('bookings');
-//     const bookings = await bookingsCollection.find({ gymId: call.request.gymId }).toArray();
-//     callback(null, {bookings});
-//   }catch(error){
-//     callback({
-//       code: grpc.status.INTERNAL,
-//       details: 'Error fetching gym bookings',
-//     });
-//   }
-// };
+// Get all bookings for a gym
+async function getGymBookings (call, callback) {
+  try{
+    const db = await connectDB();
+    const bookingsCollection = db.collection('bookings');
+    const bookings = await bookingsCollection.find({ gymId: call.request.gymId }).toArray();
+    callback(null, {bookings});
+  }catch(error){
+    callback({
+      code: grpc.status.INTERNAL,
+      details: 'Error fetching gym bookings',
+    });
+  }
+};
 
 // Create a new booking
-// async function createBooking (call, callback) {
-//   try{
-//     const db = await connectDB();
-//     const bookingsCollection = db.collection('bookings');
-//     const booking = call.request;
-//     booking.id = Math.floor(Math.random() * 1000); // Generate a random ID (but can be duplicated right now with existing entries)
-//     booking.gymId = parseInt(booking.gymId); // Convert gymId string to integer
-//     bookingsCollection.insertOne(booking);
-//     callback(null, booking);
-//   }catch(error){
-//     callback({
-//       code: grpc.status.INTERNAL,
-//       details: 'Error creating booking',
-//     });
-//   }
-
-// };
+async function createBooking (call, callback) {
+  try{
+    const db = await connectDB();
+    const bookingsCollection = db.collection('bookings');
+    const booking = call.request;
+    booking.id = Math.floor(Math.random() * 1000); // Generate a random ID (but can be duplicated right now with existing entries)
+    booking.gymId = parseInt(booking.gymId); // Convert gymId string to integer
+    bookingsCollection.insertOne(booking);
+    callback(null, booking);
+  }catch(error){
+    callback({
+      code: grpc.status.INTERNAL,
+      details: 'Error creating booking',
+    });
+  }
+};
 
 // Delete a booking by id
 async function deleteBooking(call, callback) {
