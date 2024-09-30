@@ -70,9 +70,63 @@ const getUser = async (call, callback) => {
   }
 };
 
+// GetUserByRole
+const getUserByRole = async (call, callback) => {
+  try {
+    const db = await connectDB();
+    const usersCollection = db.collection('users');
+    const users = await usersCollection.find({ role: call.request.role }).toArray();
+
+    if (users.length > 0) {
+      const userList = users.map(user => ({
+        username: user.username,
+        email: user.email,
+        role: user.role,
+      }));
+      callback(null, { users: userList });
+    } else {
+      callback({
+        code: grpc.status.NOT_FOUND,
+        details: "No users found with the specified role",
+      });
+    }
+  } catch (error) {
+    callback({
+      code: grpc.status.INTERNAL,
+      details: "Internal server error",
+    });
+  }
+};
+
+// GetAllUsers
+const getAllUsers = async (call, callback) => {
+  try {
+    const db = await connectDB();
+    const usersCollection = db.collection('users');
+    const users = await usersCollection.find({}).toArray();
+
+    const userList = users.map(user => ({
+      username: user.username,
+      email: user.email,
+      role: user.role,
+    }));
+    callback(null, { users: userList });
+  } catch (error) {
+    callback({
+      code: grpc.status.INTERNAL,
+      details: "Internal server error",
+    });
+  }
+};
+
 // Start gRPC server
 const grpcServer = new grpc.Server();
-grpcServer.addService(userProto.service, { GetUser: getUser });
+grpcServer.addService(userProto.service, {
+  GetUser: getUser,
+  GetUserByRole: getUserByRole,
+  GetAllUsers: getAllUsers,
+});
+
 grpcServer.bindAsync('0.0.0.0:50051', grpc.ServerCredentials.createInsecure(), () => {
   console.log('gRPC server running at http://0.0.0.0:50051');
 });
