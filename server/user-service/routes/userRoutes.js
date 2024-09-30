@@ -69,9 +69,12 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// Middleware to verify JWT token and role
+// Middleware to verify JWT token and role with error handling
 const authenticateToken = (role) => (req, res, next) => {
-  const token = req.header('Authorization').split(' ')[1];
+  const authHeader = req.header('Authorization');
+  if (!authHeader) return res.status(403).send('Access denied');
+
+  const token = authHeader.split(' ')[1];
   if (!token) return res.status(403).send('Access denied');
 
   jwt.verify(token, 'secretkey', (err, user) => {
