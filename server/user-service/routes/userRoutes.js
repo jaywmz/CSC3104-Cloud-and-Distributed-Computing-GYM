@@ -27,19 +27,25 @@ async function connectDB() {
 // Register
 router.post('/register', async (req, res) => {
   const { username, password, role } = req.body;
-  const db = await connectDB();
-  const usersCollection = db.collection('users');
 
-  const userExists = await usersCollection.findOne({ username });
-  if (userExists) {
-    return res.status(400).json({ message: 'User already exists' });
+  try {
+    const db = await connectDB();
+    const usersCollection = db.collection('users');
+    const userExists = await usersCollection.findOne({ username });
+
+    if (userExists) {
+      return res.status(400).json({ message: 'User already exists' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = { username, password: hashedPassword, role: role || 'user' };
+    await usersCollection.insertOne(newUser);
+
+    res.status(201).send({ message: 'User registered successfully' });
+  } catch (error) {
+    console.error('Error during registration:', error);
+    res.status(500).json({ message: 'Failed to register user.' });
   }
-
-  const hashedPassword = await bcrypt.hash(password, 10);
-  const newUser = { username, password: hashedPassword, role: role || 'user' };
-  await usersCollection.insertOne(newUser);
-
-  res.status(201).send({ message: 'User registered successfully' });
 });
 
 // Login
