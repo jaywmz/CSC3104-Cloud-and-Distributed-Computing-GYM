@@ -48,19 +48,25 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// Login
+// Login route
 router.post('/login', async (req, res) => {
   const { username, password } = req.body;
-  const db = await connectDB();
-  const usersCollection = db.collection('users');
 
-  const user = await usersCollection.findOne({ username });
-  if (!user || !(await bcrypt.compare(password, user.password))) {
-    return res.status(401).send('Invalid credentials');
+  try {
+    const db = await connectDB();
+    const usersCollection = db.collection('users');
+    const user = await usersCollection.findOne({ username });
+
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      return res.status(401).send('Invalid credentials');
+    }
+
+    const token = jwt.sign({ username, role: user.role }, 'secretkey', { expiresIn: '1h' });
+    res.json({ token });
+  } catch (error) {
+    console.error('Error during login:', error);
+    res.status(500).send('Failed to log in.');
   }
-
-  const token = jwt.sign({ username, role: user.role }, 'secretkey', { expiresIn: '1h' });
-  res.json({ token });
 });
 
 // Middleware to verify JWT token and role
