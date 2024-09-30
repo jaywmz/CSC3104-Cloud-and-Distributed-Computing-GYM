@@ -5,7 +5,6 @@ const userRoutes = require('./routes/userRoutes');
 const grpc = require('@grpc/grpc-js');
 const protoLoader = require('@grpc/proto-loader');
 const path = require('path');
-const jwt = require('jsonwebtoken');
 
 // Initialize the Express app
 const app = express();
@@ -16,22 +15,6 @@ app.use(bodyParser.json());
 
 // User Routes
 app.use('/api/users', userRoutes);
-
-// JWT Middleware to extract and decode the token
-const authenticateToken = (req, res, next) => {
-  const token = req.header('Authorization')?.split(' ')[1];
-  if (!token) {
-    return res.status(401).send('Access denied. No token provided.');
-  }
-
-  jwt.verify(token, 'secretkey', (err, user) => {
-    if (err) {
-      return res.status(403).send('Invalid token.');
-    }
-    req.user = user; // Attach the user info (decoded JWT) to the request
-    next();
-  });
-};
 
 // Start Express server
 app.listen(PORT, () => {
