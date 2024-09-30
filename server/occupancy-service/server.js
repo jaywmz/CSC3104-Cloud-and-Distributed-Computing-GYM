@@ -18,41 +18,95 @@ const client = new MongoClient(uri, {
     }
 });
 
+client.connect();
+
+const dbName = "GymOccupancy";
+const database = client.db(dbName);
+const gymsCollection = database.collection("gyms");
+const checkedInCollection = database.collection("checkedIn");
+
 // Get occupancy by counting number of checkedIn users in every gym
 app.get('/api/occupancy', async (req, res) => {
-    // TO-DO: 
-    // finding all gym documents as well as all checkedIn documents, 
-    // then counting number of checkedIn documents for each gym.
-    // Put into an array of gym objects, each object is { id, gymName, checkedInNum, maxCap }
-
-    await client.connect();
-
-    const dbName = "GymOccupancy";
-
-    const database = client.db(dbName);
-    const gymsCollection = database.collection("gyms");
-    // const occupancyCollection = database.collection("checkedIn");
-
     try {
-        const cursor = gymsCollection.find();
-        let response = [];
+        // find all gym documents 
+        let cursor = gymsCollection.find();
+        let gyms = [];
         for await (const doc of cursor) {
-            response.push(doc);
+            gyms.push(doc);
         }
-        res.status(201).json(response);
+        // console.log(gyms);
+        // find all checkedIn documents 
+        cursor = checkedInCollection.find();
+        let checkedIns = [];
+        for await (const doc of cursor) {
+            checkedIns.push(doc);
+        }
+        // console.log(checkedIns);
+        // Count number of checkIns for each gym
+        for (let i = 0; i < gyms.length; i++) {
+            let numOfGymGoers = 0;
+            for (let j = 0; j < checkedIns.length; j++) {
+                if (gyms[i].gymID == checkedIns[j].gymID) {
+                    numOfGymGoers++;
+                }
+            }
+            gyms[i].occupants = numOfGymGoers;
+        }
+        res.status(200).json(gyms);
     } 
     catch (err) {
         console.error(`Something went wrong trying to find the documents: ${err}\n`);
+        res.sendStatus(500);
     }
 });
 
 // Update occupancy by adding check-in record/document
-app.post('/api/check-in', (req, res) => {
+app.post('/api/check-in', async (req, res) => {
     // TO-DO: 
-    // From request, get user ID and gym ID.
-    // Then get timestamp from current time. 
-    // Make a new document with these 3 pieces of data,
-    // then insert into "checkedIn" collection
+    // validate check-in by checking if user is already checked in to the same gym. 
+    
+    const user = req.body[0];
+    const gym = req.body[1];
+
+    const checkIn = {
+        userID : user,
+        gymID : gym,
+        timestamp : new Date().toString()
+    };
+
+    try {
+        // console.log(checkIn);
+        await checkedInCollection.insertOne(checkIn);
+        console.log("Inserted check-in record");
+        res.sendStatus(200);
+    }
+    catch (err) {
+        console.error(`Something went wrong trying to find the documents: ${err}\n`);
+        res.sendStatus(500);
+    }
+});
+
+app.post('/api/check-out', async (req, res) => {
+    // TO-DO: 
+    // validate check-out by checking if user has checked in to the gym. 
+
+    const user = req.body[0];
+    const gym = req.body[1];
+
+    const filter = {
+        userID : user,
+        gymID : gym
+    }
+
+    try {
+        await checkedInCollection.deleteOne(filter)
+        console.log("Deleted check-in record");
+        res.sendStatus(200);
+    }
+    catch (err) {
+        console.error(`Something went wrong trying to find the documents: ${err}\n`);
+        res.sendStatus(500);
+    }
 });
 
 app.listen(PORT, () => {

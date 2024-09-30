@@ -1,13 +1,22 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5003/api/occupancy';
+const GET_OCCUPANCY_API_URL = 'http://localhost:5003/api/occupancy';
+const CHECK_IN_API_URL = 'http://localhost:5003/api/check-in';
+const CHECK_OUT_API_URL = 'http://localhost:5003/api/check-out';
 
 export const getOccupancy = async () => {
-    const response = await axios.get(API_URL);
+    const response = await axios.get(GET_OCCUPANCY_API_URL);
     return response.data;
 };
 
-export const updateOccupancy = async (change) => {
-    const response = await axios.post(API_URL, { change });
+export const checkIn = async (userID, gymID) => {
+    let reqParams = [userID, gymID];
+    const response = await axios.post(CHECK_IN_API_URL, reqParams);
+    return response.data;
+};
+
+export const checkOut = async (userID, gymID) => {
+    let reqParams = [userID, gymID];
+    const response = await axios.post(CHECK_OUT_API_URL, reqParams);
     return response.data;
 };
