@@ -17,12 +17,18 @@ const { MongoClient } = require('mongodb');
 const uri = "mongodb+srv://lichtwx:LzKVEOYBsPgSETjX@cluster0.obfql.mongodb.net/?retryWrites=true&w=majority";
 let db;
 
-// Middleware to connect to MongoDB
+// Middleware to connect to MongoDB with error handling
 async function connectDB() {
   if (!db) {
-    const client = new MongoClient(uri);
-    await client.connect();
-    db = client.db('bookingServiceDB');
+    try {
+      const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+      await client.connect();
+      db = client.db('bookingServiceDB');
+      console.log('Connected to MongoDB');
+    } catch (error) {
+      console.error('Error connecting to MongoDB:', error);
+      throw new Error('Failed to connect to the database.');
+    }
   }
   return db;
 }
