@@ -19,7 +19,7 @@ const App = () => {
         <Route 
           path="/bookings" 
           element={
-            <ProtectedRoute allowedRoles={['user']}>  {/* Only allow users */}
+            <ProtectedRoute allowedRoles={['user', 'admin']}>  {/* Only allow users */}
               <BookingPage />
             </ProtectedRoute>
           } 
@@ -28,7 +28,7 @@ const App = () => {
         <Route 
           path="/occupancy-page" 
           element={
-            <ProtectedRoute allowedRoles={['admin']}> {/* Only allow admins */}
+            <ProtectedRoute allowedRoles={['user', 'admin']}> {/* Only allow admins */}
               <OccupancyPage />
             </ProtectedRoute>
           } 
