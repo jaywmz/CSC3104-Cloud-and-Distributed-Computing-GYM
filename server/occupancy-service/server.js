@@ -29,27 +29,28 @@ const checkedInCollection = database.collection("checkedIn");
 app.get('/api/occupancy', async (req, res) => {
     try {
         // find all gym documents 
-        let cursor = gymsCollection.find();
+        let cursor = await gymsCollection.find();
         let gyms = [];
         for await (const doc of cursor) {
             gyms.push(doc);
         }
-        // console.log(gyms);
+
         // find all checkedIn documents 
-        cursor = checkedInCollection.find();
-        let checkedIns = [];
-        for await (const doc of cursor) {
-            checkedIns.push(doc);
-        }
-        // console.log(checkedIns);
+        // cursor = checkedInCollection.find();
+        // let checkedIns = [];
+        // for await (const doc of cursor) {
+        //     checkedIns.push(doc);
+        // }
+
         // Count number of checkIns for each gym
         for (let i = 0; i < gyms.length; i++) {
-            let numOfGymGoers = 0;
-            for (let j = 0; j < checkedIns.length; j++) {
-                if (gyms[i].gymID == checkedIns[j].gymID) {
-                    numOfGymGoers++;
-                }
-            }
+            // for (let j = 0; j < checkedIns.length; j++) {
+            //     if (gyms[i].gymID == checkedIns[j].gymID) {
+            //         numOfGymGoers++;
+            //     }
+            // }
+            let numOfGymGoers = await checkedInCollection.countDocuments({ "gymID" : gyms[i].gymID });
+            console.log("Gym " + gyms[i].gymName + " has " + numOfGymGoers + " people inside right now");
             gyms[i].occupants = numOfGymGoers;
         }
         res.status(200).json(gyms);
