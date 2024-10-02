@@ -1,5 +1,8 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
+const grpc = require('@grpc/grpc-js');
+const protoLoader = require('@grpc/proto-loader');
 const bodyParser = require('body-parser');
 const app = express();
 app.use(cors());
@@ -7,8 +10,8 @@ app.use(bodyParser.json());
 const PORT = process.env.PORT || 5003;
 
 /* 
-*DATABASE SET UP
-*/
+ * DATABASE SET UP
+ */
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const uri = "mongodb+srv://leooh29:DoHTA3c5W08GHGQq@occupancydb.xq4hb.mongodb.net/?retryWrites=true&w=majority&appName=OccupancyDB";
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -28,6 +31,10 @@ const checkedInCollection = database.collection("checkedIn");
 /*
  * gRPC SET UP
  */
+// gRPC client setup for user-service
+const PROTO_PATH = path.join(__dirname, '../user-service/user.proto');
+const packageDefinition = protoLoader.loadSync(PROTO_PATH, {});
+const userProto = grpc.loadPackageDefinition(packageDefinition).UserService;
 // Create a gRPC client for user-service
 const userClient = new userProto('localhost:50051', grpc.credentials.createInsecure());
 // Function to call user gRPC to convert token to user
@@ -99,10 +106,9 @@ app.post('/api/check-in', async (req, res) => {
     };
 
     try {
-        console.log(checkIn);
-        // await checkedInCollection.insertOne(checkIn);
-        // console.log("Inserted check-in record");
-        // res.sendStatus(200);
+        await checkedInCollection.insertOne(checkIn);
+        console.log("Inserted check-in record");
+        res.sendStatus(200);
     }
     catch (err) {
         console.error(`Something went wrong trying to find the documents: ${err}\n`);

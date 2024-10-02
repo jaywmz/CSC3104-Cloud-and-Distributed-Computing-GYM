@@ -25,7 +25,7 @@ const OccupancyPage = () => {
         try {
             const token = localStorage.getItem('token');
             if (!token) {
-                throw new Error('No token found. Please log in first.');
+                window.location.href = '/login';  // Redirect to the login page
             }
             
             if (change > 0) {
