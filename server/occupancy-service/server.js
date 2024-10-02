@@ -42,102 +42,136 @@ function getUserFromToken(token) {
     return new Promise((resolve, reject) => {
         userClient.GetUserFromToken({ token }, (error, response) => {
             if (error) {
-            return reject({
-                code: grpc.status.INTERNAL,
-                details: 'Error fetching user bookings',
-            });
+                return reject({
+                    code: grpc.status.INTERNAL,
+                    details: 'Error fetching user bookings',
+                });
+            } else {
+                resolve(response.username);
             }
-            resolve(response.username);
         });
     });
 }
 
+// Checks whether a check-in record containing a given username already exists in DB
+async function findCheckIn(username) {
+    try {
+        const record = await checkedInCollection.findOne({ "username" : username });
+        console.log("Record found: \n" + record);
+        if (record) {
+            return true;
+        } else {
+            return false;
+        }
+    } catch (err) {
+        console.log(err);
+        return false;
+    }
+};
 
 // Get occupancy by counting number of checkedIn users in every gym
 app.get('/api/occupancy', async (req, res) => {
     try {
         // find all gym documents 
-        let cursor = await gymsCollection.find();
+        const cursor = gymsCollection.find();
         let gyms = [];
         for await (const doc of cursor) {
             gyms.push(doc);
         }
 
-        // find all checkedIn documents 
-        // cursor = checkedInCollection.find();
-        // let checkedIns = [];
-        // for await (const doc of cursor) {
-        //     checkedIns.push(doc);
-        // }
-
-        // Count number of checkIns for each gym
+        // Count number of checkIns for each gym, for-loop loops through each gym
         for (let i = 0; i < gyms.length; i++) {
-            // for (let j = 0; j < checkedIns.length; j++) {
-            //     if (gyms[i].gymID == checkedIns[j].gymID) {
-            //         numOfGymGoers++;
-            //     }
-            // }
-            let numOfGymGoers = await checkedInCollection.countDocuments({ "gymID" : gyms[i].gymID });
-            console.log("Gym " + gyms[i].gymName + " has " + numOfGymGoers + " people inside right now");
+            // call mongodb count documents function to return number of checkedIn documents for a gym
+            const numOfGymGoers = await checkedInCollection.countDocuments({ "gymID" : gyms[i].gymID });
+            // add number of people in a gym as object attribute into the current gym object of this for-loop iteration
             gyms[i].occupants = numOfGymGoers;
         }
-        res.status(200).json(gyms);
+
+        return res.status(200).json(gyms);
     } 
     catch (err) {
-        console.error(`Something went wrong trying to find the documents: ${err}\n`);
-        res.sendStatus(500);
+        console.log(`Something went wrong trying to find the documents: ${err}\n`);
+        return res.sendStatus(500);
     }
 });
 
 // Update occupancy by adding check-in record/document
+// Each user should only be able to check in at one gym at a time
 app.post('/api/check-in', async (req, res) => {
     // TO-DO: 
     // validate check-in by checking if user is already checked in to the same gym. 
     
+    // Prepare checkIn object attributes
     const token = req.body[0];
     const gym = req.body[1];
-
-    const username = await getUserFromToken(token);
-
-    const checkIn = {
-        username : username,
-        gymID : gym,
-        timestamp : new Date().toString()
+    let username;
+    try {
+        username = await getUserFromToken(token);
+    } catch (err) {
+        console.log(err);
+        return res.sendStatus(500);
     };
 
-    try {
-        await checkedInCollection.insertOne(checkIn);
-        console.log("Inserted check-in record");
-        res.sendStatus(200);
+    // Check if there is existing record of check-in that contains given username
+    // if not, create new check-in record and insert into db 
+    const exists = await findCheckIn(username);
+    if (exists) {
+        const message = "User has already checked-in to a gym."
+        return res.send(message);
     }
-    catch (err) {
-        console.error(`Something went wrong trying to find the documents: ${err}\n`);
-        res.sendStatus(500);
+    else {
+        const checkIn = {
+            username : username,
+            gymID : gym,
+            timestamp : new Date().toString()
+        };
+
+        try {
+            await checkedInCollection.insertOne(checkIn);
+            console.log("Inserted check-in record");
+            return res.sendStatus(200);
+        }
+        catch (err) {
+            console.log(`Something went wrong trying to find the documents: ${err}\n`);
+            return res.sendStatus(500);
+        };
     }
 });
 
+// Update occupancy by removing check-in record/document
+// If no check-in document exist for a user, then check-out should not happen. 
 app.post('/api/check-out', async (req, res) => {
     // TO-DO: 
-    // validate check-out by checking if user has checked in to the gym. 
+    // validate check-out by checking if user has checked in to a gym. 
 
     const token = req.body[0];
     const gym = req.body[1];
-
-    const username = await getUserFromToken(token);
-
-    const filter = {
-        username : username,
-        gymID : gym
-    }
-
+    let username;
     try {
-        await checkedInCollection.deleteOne(filter)
-        console.log("Deleted check-in record");
-        res.sendStatus(200);
+        username = await getUserFromToken(token);
+    } catch (err) {
+        console.log(err);
+        return res.sendStatus(500);
+    };
+
+    const exists = await findCheckIn(username);
+    if (exists) {
+        try {
+            const filter = {
+                username : username,
+            }
+            await checkedInCollection.deleteOne(filter)
+            console.log("Deleted check-in record");
+            return res.sendStatus(200);
+        }
+        catch (err) {
+            console.log(`Something went wrong trying to find the documents: ${err}\n`);
+            return res.sendStatus(500);
+        }
     }
-    catch (err) {
-        console.error(`Something went wrong trying to find the documents: ${err}\n`);
-        res.sendStatus(500);
+    else {
+        const message = "User has not checked-in to this gym before."
+        return res.send(message);
     }
 });
 

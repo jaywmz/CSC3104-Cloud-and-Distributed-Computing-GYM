@@ -17,11 +17,8 @@ const OccupancyPage = () => {
         }
     };
 
+    // Handles updating of gym occupancy, whether checking in or checking out
     const handleUpdate = async (change, gymID) => {
-        // TO-DO:
-        // get userID and gymID programmatically and remove hardcoded IDs
-        // validate user's userID with user microservice using gRPC
-
         try {
             const token = localStorage.getItem('token');
             if (!token) {
@@ -49,6 +46,7 @@ const OccupancyPage = () => {
         window.location.href = '/login';  // Redirect to the login page
     };
 
+    // Function to create a html list of gyms and their capacity
     function GymList() {
         if (!occupancy || occupancy.length === 0) {
             return <p>No gyms available.</p>;
@@ -57,8 +55,8 @@ const OccupancyPage = () => {
         const list = occupancy.map((gym, index) => 
             <li key={index}>
                 {gym.gymName}, {gym.occupants}/{gym.maxCap}
-                <button onClick={() => handleUpdate(1, gym.gymID)}>Increase Occupancy</button>
-                <button onClick={() => handleUpdate(-1, gym.gymID)}>Decrease Occupancy</button>
+                <button onClick={() => handleUpdate(1, gym.gymID)}>Check in</button>
+                <button onClick={() => handleUpdate(-1, gym.gymID)}>Check out</button>
             </li>
         );
 
