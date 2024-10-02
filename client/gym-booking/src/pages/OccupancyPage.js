@@ -22,13 +22,21 @@ const OccupancyPage = () => {
         // get userID and gymID programmatically and remove hardcoded IDs
         // validate user's userID with user microservice using gRPC
 
-        const userID = 2;
-
-        if (change > 0) {
-            await checkIn(userID, gymID);
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                throw new Error('No token found. Please log in first.');
+            }
+            
+            if (change > 0) {
+                await checkIn(token, gymID);
+            }
+            else if (change < 0) {
+                await checkOut(token, gymID);
+            }
         }
-        else if (change < 0) {
-            await checkOut(userID, gymID);
+        catch (err) {
+            console.error(err);
         }
 
         fetchOccupancy(); // Refresh occupancy data

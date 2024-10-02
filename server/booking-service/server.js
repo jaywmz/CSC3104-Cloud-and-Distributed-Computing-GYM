@@ -8,18 +8,16 @@ const jwt = require('jsonwebtoken');
 
 // Initialize the Express app
 const app = express();
-
 app.use(cors());
 app.use(bodyParser.json());
-
 
 // MongoDB connection string
 const { MongoClient } = require('mongodb');
 const { get } = require('http');
 const uri = "mongodb+srv://lichtwx:LzKVEOYBsPgSETjX@cluster0.obfql.mongodb.net/?retryWrites=true&w=majority";
-let db;
 
 // Middleware to connect to MongoDB with error handling
+let db;
 async function connectDB() {
   if (!db) {
     try {
@@ -33,21 +31,6 @@ async function connectDB() {
     }
   }
   return db;
-}
-
-// Function to call user gRPC to convert token to user
-function getUserFromToken(token) {
-  return new Promise((resolve, reject) => {
-    userClient.GetUserFromToken({ token }, (error, response) => {
-      if (error) {
-        return reject({
-          code: grpc.status.INTERNAL,
-          details: 'Error fetching user bookings',
-        });
-      }
-      resolve(response.username);
-    });
-  });
 }
 
 // gRPC server setup for booking-service
@@ -67,6 +50,21 @@ const userClient = new userProto('localhost:50051', grpc.credentials.createInsec
 // REMOVE THIS WHEN REMOVING EXPRESS ROUTES (this is so that the express routes can call the gRPC methods)
 // in future it calls the gRPC methods directly, not through express routes
 const bookingClient = new bookingProto('localhost:50052', grpc.credentials.createInsecure());
+
+// Function to call user gRPC to convert token to user
+function getUserFromToken(token) {
+  return new Promise((resolve, reject) => {
+    userClient.GetUserFromToken({ token }, (error, response) => {
+      if (error) {
+        return reject({
+          code: grpc.status.INTERNAL,
+          details: 'Error fetching user bookings',
+        });
+      }
+      resolve(response.username);
+    });
+  });
+}
 
 // Function to validate user using gRPC
 const checkUser = (username, callback) => {

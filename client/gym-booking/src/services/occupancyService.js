@@ -9,14 +9,14 @@ export const getOccupancy = async () => {
     return response.data;
 };
 
-export const checkIn = async (userID, gymID) => {
-    let reqParams = [userID, gymID];
+export const checkIn = async (token, gymID) => {
+    let reqParams = [token, gymID];
     const response = await axios.post(CHECK_IN_API_URL, reqParams);
     return response.data;
 };
 
-export const checkOut = async (userID, gymID) => {
-    let reqParams = [userID, gymID];
+export const checkOut = async (token, gymID) => {
+    let reqParams = [token, gymID];
     const response = await axios.post(CHECK_OUT_API_URL, reqParams);
     return response.data;
 };

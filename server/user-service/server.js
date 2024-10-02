@@ -120,15 +120,18 @@ const getAllUsers = async (call, callback) => {
   }
 };
 
+// call consist of the token from calling client, callback is the function injected into the parameters from the calling client.
 function getUserFromToken(call, callback) {
   try {
     jwt.verify(call.request.token, 'secretkey', (error, user) => {
       if (error) {
         return reject(error);
       }
-        callback(null, { username: user.username});
+      // callback returns two results, (error, response). So null error, and response is user.username
+      callback(null, { username: user.username});
     });
-  }catch (error) {
+  }
+  catch (error) {
     callback({
       code: grpc.status.INTERNAL,
       details: "Internal server error",
