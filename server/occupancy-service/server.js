@@ -44,7 +44,7 @@ function getUserFromToken(token) {
             if (error) {
                 return reject({
                     code: grpc.status.INTERNAL,
-                    details: 'Error fetching user bookings',
+                    details: 'Error fetching user from token',
                 });
             } else {
                 resolve(response.username);
@@ -57,7 +57,6 @@ function getUserFromToken(token) {
 async function findCheckIn(username) {
     try {
         const record = await checkedInCollection.findOne({ "username" : username });
-        console.log("Record found: \n" + record);
         if (record) {
             return true;
         } else {
@@ -73,7 +72,7 @@ async function findCheckIn(username) {
 app.get('/api/occupancy', async (req, res) => {
     try {
         // find all gym documents 
-        const cursor = gymsCollection.find();
+        const cursor = await gymsCollection.find();
         let gyms = [];
         for await (const doc of cursor) {
             gyms.push(doc);
@@ -89,6 +88,26 @@ app.get('/api/occupancy', async (req, res) => {
 
         return res.status(200).json(gyms);
     } 
+    catch (err) {
+        console.log(`Something went wrong trying to find the documents: ${err}\n`);
+        return res.sendStatus(500);
+    }
+});
+
+// Get a single gym data for check-in check-out page
+app.get('/api/gym', async (req, res) => {
+    try {
+        const id = Number(req.query.id);
+
+        const gym = await gymsCollection.findOne({ gymID: { $eq: id } });
+
+        if (gym) {
+            return res.status(200).json(gym);
+        }
+        else {
+            return res.status(404);
+        }   
+    }
     catch (err) {
         console.log(`Something went wrong trying to find the documents: ${err}\n`);
         return res.sendStatus(500);

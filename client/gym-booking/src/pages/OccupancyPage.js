@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { getOccupancy, checkIn, checkOut } from '../services/occupancyService';
+import { Link } from 'react-router-dom';
 
 const OccupancyPage = () => {
     const [occupancy, setOccupancy] = useState([]);
@@ -17,28 +18,28 @@ const OccupancyPage = () => {
         }
     };
 
-    // Handles updating of gym occupancy, whether checking in or checking out
-    const handleUpdate = async (change, gymID) => {
-        try {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                window.location.href = '/login';  // Redirect to the login page
-            }
+    // // Handles updating of gym occupancy, whether checking in or checking out
+    // const handleUpdate = async (change, gymID) => {
+    //     try {
+    //         const token = localStorage.getItem('token');
+    //         if (!token) {
+    //             window.location.href = '/login';  // Redirect to the login page
+    //         }
             
-            if (change > 0) {
-                await checkIn(token, gymID);
-            }
-            else if (change < 0) {
-                await checkOut(token, gymID);
-            }
-        }
-        catch (err) {
-            console.error(err);
-        }
+    //         if (change > 0) {
+    //             await checkIn(token, gymID);
+    //         }
+    //         else if (change < 0) {
+    //             await checkOut(token, gymID);
+    //         }
+    //     }
+    //     catch (err) {
+    //         console.error(err);
+    //     }
 
-        fetchOccupancy(); // Refresh occupancy data
-        GymList(); // Refresh gym list
-    };
+    //     fetchOccupancy(); // Refresh occupancy data
+    //     GymList(); // Refresh gym list HTML list
+    // };
 
     // Handle logout
     const handleLogout = () => {
@@ -54,9 +55,7 @@ const OccupancyPage = () => {
 
         const list = occupancy.map((gym, index) => 
             <li key={index}>
-                {gym.gymName}, {gym.occupants}/{gym.maxCap}
-                <button onClick={() => handleUpdate(1, gym.gymID)}>Check in</button>
-                <button onClick={() => handleUpdate(-1, gym.gymID)}>Check out</button>
+                <Link to={`/gym-page/${gym.gymID}`}>{gym.gymName}</Link>, {gym.occupants}/{gym.maxCap}
             </li>
         );
 

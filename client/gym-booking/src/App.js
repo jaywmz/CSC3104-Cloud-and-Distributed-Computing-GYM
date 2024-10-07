@@ -5,6 +5,8 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import BookingPage from './pages/BookingPage';
 import OccupancyPage from './pages/OccupancyPage';
+import AdminPage from './pages/AdminPage';
+import GymPage from './pages/GymPage';
 import ProtectedRoute from './components/ProtectedRoute'; // Import ProtectedRoute
 
 const App = () => {
@@ -19,7 +21,7 @@ const App = () => {
         <Route 
           path="/bookings" 
           element={
-            <ProtectedRoute allowedRoles={['user', 'admin']}>  {/* Only allow users */}
+            <ProtectedRoute allowedRoles={['user', 'admin']}>  {/* Allow all users */}
               <BookingPage />
             </ProtectedRoute>
           } 
@@ -28,8 +30,26 @@ const App = () => {
         <Route 
           path="/occupancy-page" 
           element={
-            <ProtectedRoute allowedRoles={['user', 'admin']}> {/* Only allow admins */}
+            <ProtectedRoute allowedRoles={['user', 'admin']}> {/* Allow all users for now*/}
               <OccupancyPage />
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/gym-page/:id" 
+          element={
+            <ProtectedRoute allowedRoles={['user', 'admin']}> {/* Allow all users for now*/}
+              <GymPage />
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/admin"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}> {/* Only allow admins */}
+              <AdminPage />
             </ProtectedRoute>
           } 
         />
