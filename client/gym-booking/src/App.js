@@ -8,6 +8,7 @@ import OccupancyPage from './pages/OccupancyPage';
 import AdminPage from './pages/AdminPage';
 import GymPage from './pages/GymPage';
 import ProtectedRoute from './components/ProtectedRoute'; // Import ProtectedRoute
+import './App.css';
 
 const App = () => {
   return (

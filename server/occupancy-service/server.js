@@ -23,10 +23,12 @@ const client = new MongoClient(uri, {
     }
 });
 client.connect();
-const dbName = "GymOccupancy";
-const database = client.db(dbName);
-const gymsCollection = database.collection("gyms");
-const checkedInCollection = database.collection("checkedIn");
+const occupancyDB = client.db("GymOccupancy");
+const gymsCollection = occupancyDB.collection("gyms");
+const checkedInCollection = occupancyDB.collection("checkedIn");
+const equipmentDB = client.db("GymEquipment");
+const equipmentCollection = equipmentDB.collection("equipment");
+// const equipUsageCollection = equipmentDB.collection("equipUsage");
 
 /*
  * gRPC SET UP
@@ -68,6 +70,21 @@ async function findCheckIn(username) {
     }
 };
 
+// Checks if theres an equipment being used by the given username
+async function checkUsage(itemID) {
+    try {
+        const record = await equipmentCollection.findOne({ "itemID" : itemID });
+        if (record.inUse) {
+            return true;
+        } else {
+            return false;
+        }
+    } catch (err) {
+        console.log(err);
+        return false;
+    }
+};
+
 // Get occupancy by counting number of checkedIn users in every gym
 app.get('/api/occupancy', async (req, res) => {
     try {
@@ -82,8 +99,11 @@ app.get('/api/occupancy', async (req, res) => {
         for (let i = 0; i < gyms.length; i++) {
             // call mongodb count documents function to return number of checkedIn documents for a gym
             const numOfGymGoers = await checkedInCollection.countDocuments({ "gymID" : gyms[i].gymID });
-            // add number of people in a gym as object attribute into the current gym object of this for-loop iteration
+            // add number of people in a gym as attribute in the current gym object of this for-loop iteration
             gyms[i].occupants = numOfGymGoers;
+            // Group the equipments of each gym into each gym object
+            const equipment = await equipmentCollection.find({ "gymID" : gyms[i].gymID }).toArray();
+            gyms[i].equipment = equipment;
         }
 
         return res.status(200).json(gyms);
@@ -117,9 +137,6 @@ app.get('/api/gym', async (req, res) => {
 // Update occupancy by adding check-in record/document
 // Each user should only be able to check in at one gym at a time
 app.post('/api/check-in', async (req, res) => {
-    // TO-DO: 
-    // validate check-in by checking if user is already checked in to the same gym. 
-    
     // Prepare checkIn object attributes
     const token = req.body[0];
     const gym = req.body[1];
@@ -160,9 +177,6 @@ app.post('/api/check-in', async (req, res) => {
 // Update occupancy by removing check-in record/document
 // If no check-in document exist for a user, then check-out should not happen. 
 app.post('/api/check-out', async (req, res) => {
-    // TO-DO: 
-    // validate check-out by checking if user has checked in to a gym. 
-
     const token = req.body[0];
     const gym = req.body[1];
     let username;
@@ -190,6 +204,58 @@ app.post('/api/check-out', async (req, res) => {
     }
     else {
         const message = "User has not checked-in to this gym before."
+        return res.send(message);
+    }
+});
+
+// Update equipment usage by setting equipment inUse attribute to TRUE
+app.post('/api/start-using', async (req, res) => {
+    const token = req.body[0];
+    const equipment = req.body[1];
+
+    const inUse = await checkUsage(equipment);
+    if (inUse) {
+        const message = "Equipment is being used."
+        return res.send(message);
+    }
+    else {
+        try {
+            await equipmentCollection.updateOne(
+                { itemID : equipment },
+                { $set : { inUse : true } }
+            );
+            console.log("Updated equipment in-use to true.");
+            return res.sendStatus(200);
+        }
+        catch (err) {
+            console.log(`Something went wrong trying to find the documents: ${err}\n`);
+            return res.sendStatus(500);
+        };
+    }
+});
+
+// Update equipment usage by setting equipment inUse attribute to FALSE
+app.post('/api/stop-using', async (req, res) => {
+    const token = req.body[0];
+    const equipment = req.body[1];
+
+    const inUse = await checkUsage(equipment);
+    if (inUse) {
+        try {
+            await equipmentCollection.updateOne(
+                { itemID : equipment },
+                { $set : { inUse : false } }
+            );
+            console.log("Updated equipment in-use to false.");
+            return res.sendStatus(200);
+        }
+        catch (err) {
+            console.log(`Something went wrong trying to find the documents: ${err}\n`);
+            return res.sendStatus(500);
+        }
+    }
+    else {
+        const message = "User has not been using any equipment."
         return res.send(message);
     }
 });
