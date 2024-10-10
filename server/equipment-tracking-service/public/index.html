@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gym Equipment Status</title>
+    <style>
+        .status-taken {
+            color: red;
+        }
+        .status-available {
+            color: green;
+        }
+    </style>
+</head>
+<body>
+    <h1>Gym Equipment Status</h1>
+    <div id="equipment-status"></div>
+
+    <script>
+        // Fetch equipment status from the backend
+        async function fetchEquipmentStatus() {
+            try {
+                const response = await fetch('/equipment-status');
+                const data = await response.json();
+                displayEquipmentStatus(data);
+            } catch (error) {
+                console.error('Failed to fetch equipment status:', error);
+            }
+        }
+
+        // Display equipment status
+        function displayEquipmentStatus(status) {
+            const statusDiv = document.getElementById('equipment-status');
+            statusDiv.innerHTML = '';
+
+            for (const [equipmentId, availability] of Object.entries(status)) {
+                const statusText = availability === 1 ? 'Taken' : 'Available';
+                const statusClass = availability === 1 ? 'status-taken' : 'status-available';
+
+                const equipmentDiv = document.createElement('div');
+                equipmentDiv.className = statusClass;
+                equipmentDiv.textContent = `${equipmentId}: ${statusText}`;
+
+                statusDiv.appendChild(equipmentDiv);
+            }
+        }
+
+        // Refresh equipment status every 5 seconds
+        setInterval(fetchEquipmentStatus, 5000);
+
+        // Initial fetch
+        fetchEquipmentStatus();
+    </script>
+</body>
+</html>
