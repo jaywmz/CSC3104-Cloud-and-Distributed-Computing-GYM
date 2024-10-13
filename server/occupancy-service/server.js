@@ -4,17 +4,17 @@ const path = require('path');
 const grpc = require('@grpc/grpc-js');
 const protoLoader = require('@grpc/proto-loader');
 const bodyParser = require('body-parser');
+const mqtt = require('mqtt'); // Add MQTT library
+const WebSocket = require('ws'); // Add WebSocket library
+
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 const PORT = process.env.PORT || 5003;
 
-/* 
- * DATABASE SET UP
- */
+/* DATABASE SET UP */
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const uri = "mongodb+srv://leooh29:DoHTA3c5W08GHGQq@occupancydb.xq4hb.mongodb.net/?retryWrites=true&w=majority&appName=OccupancyDB";
-// Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
     serverApi: {
       version: ServerApiVersion.v1,
@@ -28,17 +28,68 @@ const gymsCollection = occupancyDB.collection("gyms");
 const checkedInCollection = occupancyDB.collection("checkedIn");
 const equipmentDB = client.db("GymEquipment");
 const equipmentCollection = equipmentDB.collection("equipment");
-// const equipUsageCollection = equipmentDB.collection("equipUsage");
 
-/*
- * gRPC SET UP
- */
+/* gRPC SET UP */
 // gRPC client setup for user-service
 const PROTO_PATH = path.join(__dirname, '../user-service/user.proto');
 const packageDefinition = protoLoader.loadSync(PROTO_PATH, {});
 const userProto = grpc.loadPackageDefinition(packageDefinition).UserService;
-// Create a gRPC client for user-service
 const userClient = new userProto('localhost:50051', grpc.credentials.createInsecure());
+
+/* MQTT SET UP */
+// Connect to the MQTT broker
+const mqttClient = mqtt.connect('mqtt://localhost:1883');
+
+/* WebSocket SET UP */
+// Create WebSocket server
+const wss = new WebSocket.Server({ port: 8080 });
+
+wss.on('connection', (ws) => {
+    console.log('New WebSocket client connected');
+});
+
+// Broadcast function for WebSocket
+function broadcast(data) {
+    wss.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify(data));
+        }
+    });
+}
+
+mqttClient.on('connect', () => {
+    console.log('Connected to MQTT broker');
+    mqttClient.subscribe('gym/equipment/usage', (err) => {
+        if (!err) {
+            console.log('Subscribed to gym/equipment/usage');
+        } else {
+            console.error('Failed to subscribe to MQTT topic:', err);
+        }
+    });
+});
+
+// Listen for messages from MQTT broker
+mqttClient.on('message', async (topic, message) => {
+    if (topic === 'gym/equipment/usage') {
+        try {
+            const data = JSON.parse(message.toString());
+            const { itemID, inUse } = data;
+
+            // Update the equipment's inUse status in the MongoDB collection
+            await equipmentCollection.updateOne(
+                { itemID: itemID },
+                { $set: { inUse: inUse } }
+            );
+            console.log(`Updated equipment itemID: ${itemID} inUse: ${inUse}`);
+
+            // Broadcast the updated equipment status to all WebSocket clients
+            broadcast(data);
+        } catch (err) {
+            console.error('Error processing MQTT message:', err);
+        }
+    }
+});
+
 // Function to call user gRPC to convert token to user
 function getUserFromToken(token) {
     return new Promise((resolve, reject) => {
@@ -59,49 +110,25 @@ function getUserFromToken(token) {
 async function findCheckIn(username) {
     try {
         const record = await checkedInCollection.findOne({ "username" : username });
-        if (record) {
-            return true;
-        } else {
-            return false;
-        }
+        return !!record;
     } catch (err) {
         console.log(err);
         return false;
     }
 };
 
-// Checks if theres an equipment being used by the given username
-async function checkUsage(itemID) {
-    try {
-        const record = await equipmentCollection.findOne({ "itemID" : itemID });
-        if (record.inUse) {
-            return true;
-        } else {
-            return false;
-        }
-    } catch (err) {
-        console.log(err);
-        return false;
-    }
-};
-
-// Get occupancy by counting number of checkedIn users in every gym
+// Get occupancy by counting number of checked-in users in every gym
 app.get('/api/occupancy', async (req, res) => {
     try {
-        // find all gym documents 
         const cursor = await gymsCollection.find();
         let gyms = [];
         for await (const doc of cursor) {
             gyms.push(doc);
         }
 
-        // Count number of checkIns for each gym, for-loop loops through each gym
         for (let i = 0; i < gyms.length; i++) {
-            // call mongodb count documents function to return number of checkedIn documents for a gym
             const numOfGymGoers = await checkedInCollection.countDocuments({ "gymID" : gyms[i].gymID });
-            // add number of people in a gym as attribute in the current gym object of this for-loop iteration
             gyms[i].occupants = numOfGymGoers;
-            // Group the equipments of each gym into each gym object
             const equipment = await equipmentCollection.find({ "gymID" : gyms[i].gymID }).toArray();
             gyms[i].equipment = equipment;
         }
@@ -123,21 +150,17 @@ app.get('/api/gym', async (req, res) => {
 
         if (gym) {
             return res.status(200).json(gym);
-        }
-        else {
+        } else {
             return res.status(404);
         }   
-    }
-    catch (err) {
+    } catch (err) {
         console.log(`Something went wrong trying to find the documents: ${err}\n`);
         return res.sendStatus(500);
     }
 });
 
 // Update occupancy by adding check-in record/document
-// Each user should only be able to check in at one gym at a time
 app.post('/api/check-in', async (req, res) => {
-    // Prepare checkIn object attributes
     const token = req.body[0];
     const gym = req.body[1];
     let username;
@@ -148,34 +171,29 @@ app.post('/api/check-in', async (req, res) => {
         return res.sendStatus(500);
     };
 
-    // Check if there is existing record of check-in that contains given username
-    // if not, create new check-in record and insert into db 
     const exists = await findCheckIn(username);
     if (exists) {
         const message = "User has already checked-in to a gym."
         return res.send(message);
-    }
-    else {
+    } else {
         const checkIn = {
-            username : username,
-            gymID : gym,
-            timestamp : new Date().toString()
+            username: username,
+            gymID: gym,
+            timestamp: new Date().toString()
         };
 
         try {
             await checkedInCollection.insertOne(checkIn);
             console.log("Inserted check-in record");
             return res.sendStatus(200);
-        }
-        catch (err) {
+        } catch (err) {
             console.log(`Something went wrong trying to find the documents: ${err}\n`);
             return res.sendStatus(500);
-        };
+        }
     }
 });
 
 // Update occupancy by removing check-in record/document
-// If no check-in document exist for a user, then check-out should not happen. 
 app.post('/api/check-out', async (req, res) => {
     const token = req.body[0];
     const gym = req.body[1];
@@ -190,77 +208,20 @@ app.post('/api/check-out', async (req, res) => {
     const exists = await findCheckIn(username);
     if (exists) {
         try {
-            const filter = {
-                username : username,
-            }
-            await checkedInCollection.deleteOne(filter)
+            await checkedInCollection.deleteOne({ username });
             console.log("Deleted check-in record");
             return res.sendStatus(200);
-        }
-        catch (err) {
+        } catch (err) {
             console.log(`Something went wrong trying to find the documents: ${err}\n`);
             return res.sendStatus(500);
         }
-    }
-    else {
-        const message = "User has not checked-in to this gym before."
+    } else {
+        const message = "User has not checked-in to this gym before.";
         return res.send(message);
     }
 });
 
-// Update equipment usage by setting equipment inUse attribute to TRUE
-app.post('/api/start-using', async (req, res) => {
-    const token = req.body[0];
-    const equipment = req.body[1];
-
-    const inUse = await checkUsage(equipment);
-    if (inUse) {
-        const message = "Equipment is being used."
-        return res.send(message);
-    }
-    else {
-        try {
-            await equipmentCollection.updateOne(
-                { itemID : equipment },
-                { $set : { inUse : true } }
-            );
-            console.log("Updated equipment in-use to true.");
-            return res.sendStatus(200);
-        }
-        catch (err) {
-            console.log(`Something went wrong trying to find the documents: ${err}\n`);
-            return res.sendStatus(500);
-        };
-    }
-});
-
-// Update equipment usage by setting equipment inUse attribute to FALSE
-app.post('/api/stop-using', async (req, res) => {
-    const token = req.body[0];
-    const equipment = req.body[1];
-
-    const inUse = await checkUsage(equipment);
-    if (inUse) {
-        try {
-            await equipmentCollection.updateOne(
-                { itemID : equipment },
-                { $set : { inUse : false } }
-            );
-            console.log("Updated equipment in-use to false.");
-            return res.sendStatus(200);
-        }
-        catch (err) {
-            console.log(`Something went wrong trying to find the documents: ${err}\n`);
-            return res.sendStatus(500);
-        }
-    }
-    else {
-        const message = "User has not been using any equipment."
-        return res.send(message);
-    }
-});
-
-
+// Create Gym
 app.post('/api/create-gym', async (req, res) => {
     const { gymName, maxCap } = req.body;
 
@@ -269,20 +230,15 @@ app.post('/api/create-gym', async (req, res) => {
     }
 
     try {
-        // Count the number of existing gyms
         const count = await gymsCollection.countDocuments();
-
-        // Increment the count by 1 to get the new gymID
         const newGymID = count + 1;
 
-        // Create the new gym object
         const newGym = {
-            gymID: newGymID,  // Auto-incremented gymID
+            gymID: newGymID,
             gymName: gymName,
             maxCap: parseInt(maxCap)
         };
 
-        // Insert the new gym into the collection
         await gymsCollection.insertOne(newGym);
         console.log(`New gym created with gymID: ${newGymID}`);
         return res.sendStatus(200);
@@ -291,7 +247,6 @@ app.post('/api/create-gym', async (req, res) => {
         return res.status(500).json({ message: 'Server error. Failed to create gym' });
     }
 });
-
 
 // Create Equipment
 app.post('/api/create-equipment', async (req, res) => {
@@ -302,15 +257,11 @@ app.post('/api/create-equipment', async (req, res) => {
     }
 
     try {
-        // Count the number of existing documents in the equipment collection
         const count = await equipmentCollection.countDocuments();
-
-        // Increment count by 1 for the new itemID
         const newItemID = count + 1;
 
-        // Create the new equipment object with the auto-incremented itemID
         const newEquipment = {
-            itemID: newItemID,  // Set itemID based on the count
+            itemID: newItemID,
             type: equipmentType,
             name: equipmentName,
             gymID: parseInt(gymID),
@@ -318,7 +269,6 @@ app.post('/api/create-equipment', async (req, res) => {
             inUse: false
         };
 
-        // Insert the new equipment into the collection
         await equipmentCollection.insertOne(newEquipment);
         console.log(`New equipment created with itemID: ${newItemID}`);
         return res.sendStatus(200);
@@ -328,6 +278,7 @@ app.post('/api/create-equipment', async (req, res) => {
     }
 });
 
+// Get Gyms
 app.get('/api/get-gyms', async (req, res) => {
     try {
         const gyms = await gymsCollection.find().toArray();
@@ -337,9 +288,6 @@ app.get('/api/get-gyms', async (req, res) => {
         res.status(500).json({ message: 'Failed to fetch gyms' });
     }
 });
-
-
-
 
 app.listen(PORT, () => {
     console.log(`Occupancy service running on port ${PORT}`);
