@@ -128,3 +128,12 @@ h3 {
 .stop-button:hover {
     background-color: #d32f2f;
 }
+
+.gym-link {
+    color: #007bff; /* Bootstrap link color */
+    text-decoration: none;
+}
+
+.gym-link:hover {
+    text-decoration: underline;
+}
