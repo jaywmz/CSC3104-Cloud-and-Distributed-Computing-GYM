@@ -260,6 +260,87 @@ app.post('/api/stop-using', async (req, res) => {
     }
 });
 
+
+app.post('/api/create-gym', async (req, res) => {
+    const { gymName, maxCap } = req.body;
+
+    if (!gymName || !maxCap) {
+        return res.status(400).json({ message: 'All fields are required' });
+    }
+
+    try {
+        // Count the number of existing gyms
+        const count = await gymsCollection.countDocuments();
+
+        // Increment the count by 1 to get the new gymID
+        const newGymID = count + 1;
+
+        // Create the new gym object
+        const newGym = {
+            gymID: newGymID,  // Auto-incremented gymID
+            gymName: gymName,
+            maxCap: parseInt(maxCap)
+        };
+
+        // Insert the new gym into the collection
+        await gymsCollection.insertOne(newGym);
+        console.log(`New gym created with gymID: ${newGymID}`);
+        return res.sendStatus(200);
+    } catch (err) {
+        console.error(`Error creating gym: ${err}`);
+        return res.status(500).json({ message: 'Server error. Failed to create gym' });
+    }
+});
+
+
+// Create Equipment
+app.post('/api/create-equipment', async (req, res) => {
+    const { equipmentName, equipmentType, gymID, purpose } = req.body;
+
+    if (!equipmentName || !equipmentType || !gymID || !purpose) {
+        return res.status(400).json({ message: 'All fields are required' });
+    }
+
+    try {
+        // Count the number of existing documents in the equipment collection
+        const count = await equipmentCollection.countDocuments();
+
+        // Increment count by 1 for the new itemID
+        const newItemID = count + 1;
+
+        // Create the new equipment object with the auto-incremented itemID
+        const newEquipment = {
+            itemID: newItemID,  // Set itemID based on the count
+            type: equipmentType,
+            name: equipmentName,
+            gymID: parseInt(gymID),
+            purpose: purpose,
+            inUse: false
+        };
+
+        // Insert the new equipment into the collection
+        await equipmentCollection.insertOne(newEquipment);
+        console.log(`New equipment created with itemID: ${newItemID}`);
+        return res.sendStatus(200);
+    } catch (err) {
+        console.error(`Error creating equipment: ${err}`);
+        return res.status(500).json({ message: 'Server error. Failed to create equipment' });
+    }
+});
+
+app.get('/api/get-gyms', async (req, res) => {
+    try {
+        const gyms = await gymsCollection.find().toArray();
+        res.status(200).json(gyms); // Send the list of gyms as a response
+    } catch (err) {
+        console.error('Error fetching gyms:', err);
+        res.status(500).json({ message: 'Failed to fetch gyms' });
+    }
+});
+
+
+
+
 app.listen(PORT, () => {
     console.log(`Occupancy service running on port ${PORT}`);
 });
