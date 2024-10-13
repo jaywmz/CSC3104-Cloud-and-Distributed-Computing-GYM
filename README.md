@@ -58,7 +58,7 @@ Start the server:
 - node server.js
 - This will start the booking microservice on http://localhost:5002 and communicate with the user-service via gRPC.
 
-# 4. Run the Occupancy Service:
+# 5. Run the Occupancy Service:
 Navigate to the occupancy-service folder:
 - cd server/occupancy-service
 
@@ -68,7 +68,7 @@ Start the server:
 - Open another command prompt at the occupancy microservice folder, and run node mqttDummyPublish.js to simulate as IoT devices publishing data to the database.
 
 
-# 4. Run the Frontend (Gym Booking):
+# 6. Run the Frontend (Gym Booking):
 Navigate to the gym-booking folder:
 - cd client/gym-booking
 
@@ -76,7 +76,7 @@ Start the React frontend:
 - npm start
 - This will start the React frontend on http://localhost:3000.
 
-# 5. Interacting with the System:
+# 7. Interacting with the System:
 Register a User:
 - Go to http://localhost:3000/register.
 - Create a new user by providing a username, password, and role (either user or admin).
@@ -100,6 +100,10 @@ Booking-Service:
 - Manages gym bookings.
 - Communicates with the user-service via gRPC to validate users before creating bookings.
 - Stores bookings in a MongoDB database.
+
+- Occupancy-Service:
+- Manages gym creation, equipment and checkin.
+
 
 Frontend (Gym Booking):
 - React frontend for user interaction.
