@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { loginUser } from '../services/userService';
-import { useNavigate, Link } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css'; // Import Bootstrap
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { loginUser } from '../services/userService';
 
 const LoginPage = () => {
   const [credentials, setCredentials] = useState({ username: '', password: '' });
@@ -22,8 +22,10 @@ const LoginPage = () => {
 
       localStorage.setItem('token', response.token);
       setMessage('Login successful!');
-
       const decodedToken = JSON.parse(atob(response.token.split('.')[1])); // Decode JWT token
+     
+      const role=decodedToken.role
+      localStorage.setItem('role', role);
       if (decodedToken.role === 'admin') {
         navigate('/occupancy-page');
       } else {
