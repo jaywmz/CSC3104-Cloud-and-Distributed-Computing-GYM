@@ -1,31 +1,35 @@
 import React, { useEffect, useState } from 'react';
-import { getOccupancy, startUsing, stopUsing } from '../services/occupancyService';
 import { Link } from 'react-router-dom';
+import '../css/OccupancyPage.css';
+import { getOccupancy, startUsing, stopUsing } from '../services/occupancyService';
 
 const OccupancyPage = () => {
     const [occupancy, setOccupancy] = useState([]);
+    const [userRole, setUserRole] = useState(null);
 
     useEffect(() => {
         fetchOccupancy();
+        // Get the user role from localStorage or from your authentication service
+        const role = localStorage.getItem('role'); // Assuming you store the role in localStorage
+        setUserRole(role);
     }, []);
 
     const fetchOccupancy = async () => {
         try {
-            const data = await getOccupancy();  // Ensure this is an async call
-            setOccupancy(Array.isArray(data) ? data : []);  // Ensure data is an array
+            const data = await getOccupancy();
+            setOccupancy(Array.isArray(data) ? data : []);
         } catch (error) {
             console.error("Error fetching occupancy data: ", error);
         }
     };
 
-    // Handles updating of gym occupancy, whether checking in or checking out
     const handleUpdate = async (change, itemID) => {
         try {
             const token = localStorage.getItem('token');
             if (!token) {
-                window.location.href = '/login';  // Redirect to the login page
+                window.location.href = '/login';
             }
-            
+
             if (change > 0) {
                 await startUsing(token, itemID);
             }
@@ -41,54 +45,60 @@ const OccupancyPage = () => {
         GymList(); // Refresh gym list HTML list
     };
 
-    // Handle logout
     const handleLogout = () => {
-        localStorage.removeItem('token'); // Remove the token from localStorage
-        window.location.href = '/login';  // Redirect to the login page
+        localStorage.removeItem('token');
+        window.location.href = '/login';
     };
 
-    // Function to create a html list of gyms and their equipment
     function GymList() {
         if (!occupancy || occupancy.length === 0) {
-            return <p>No gyms available.</p>;
+            return <p className="no-gyms">No gyms available.</p>;
         }
 
-        // insert status attribute to each equipment item for usage label text
         for (let gym of occupancy) {
             for (let item of gym.equipment) {
-                if (item.inUse) {
-                    item.status = "in-use";
-                }
-                else {
-                    item.status = "not in-use";
-                }
+                item.status = item.inUse ? "In Use" : "Available";
             }
         }
 
-        const list = occupancy.map((gym, index) => 
-            <li key={index}>
-                <Link to={`/gym-page/${gym.gymID}`}>{gym.gymName}</Link>, {gym.occupants}/{gym.maxCap}
-                <ul>
-                    {gym.equipment.map((item) => 
-                        <li>{item.name}&nbsp;
-                            <label id={item.itemID}>{item.status}</label>&nbsp;
-                            <button onClick={() => handleUpdate(1, item.itemID)}>Use</button>
-                            <button onClick={() => handleUpdate(-1, item.itemID)}>Stop using</button>
-                        </li>
-                    )}
-                </ul>
-            </li>
+        return (
+            <div className="gym-list">
+                {occupancy.map((gym, index) => (
+                    <div key={index} className="gym-box">
+                        <h3>{gym.gymName} ({gym.occupants}/{gym.maxCap})</h3>
+                        <ul>
+                            {gym.equipment.map((item) => (
+                                <li key={item.itemID} className="equipment-item">
+                                    <span className="equipment-name">{item.name}</span>
+                                    <span className={`equipment-status ${item.inUse ? 'in-use' : 'available'}`}>
+                                        {item.status}
+                                    </span>
+                                    <div className="equipment-buttons">
+                                        <button onClick={() => handleUpdate(1, item.itemID)} className="use-button">Use</button>
+                                        <button onClick={() => handleUpdate(-1, item.itemID)} className="stop-button">Stop</button>
+                                    </div>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                ))}
+            </div>
         );
-
-        return <ul>{list}</ul>;
-    };
+    }
 
     return (
-        <div>
-            {/* Logout Button */}
-            <button onClick={handleLogout} style={{ float: 'right' }}>Logout</button>
-
-            <h2>Gym Occupancy</h2>
+        <div className="occupancy-page">
+            {/* Header with buttons for Admin and Logout */}
+            <header className="header">
+                <h2>Gym Occupancy</h2>
+                <div className="button-group">
+                    {/* Conditionally render the "Admin Page" link if the user is an admin */}
+                    {userRole === 'admin' && (
+                        <Link to="/admin" className="admin-link">Go to Admin Dashboard</Link>
+                    )}
+                    <button onClick={handleLogout} className="logout-button">Logout</button>
+                </div>
+            </header>
 
             <GymList />
         </div>
