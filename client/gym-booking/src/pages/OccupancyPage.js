@@ -38,12 +38,17 @@ const OccupancyPage = () => {
         if (!occupancy || occupancy.length === 0) {
             return <p className="no-gyms">No gyms available.</p>;
         }
-
+    
         return (
             <div className="gym-list">
                 {occupancy.map((gym, index) => (
                     <div key={index} className="gym-box">
-                        <h3>{gym.gymName} ({gym.occupants}/{gym.maxCap})</h3>
+                        {/* Link the gym name to its specific page */}
+                        <h3>
+                            <Link to={`/gym-page/${gym.gymID}`} className="gym-link">
+                                {gym.gymName} ({gym.occupants}/{gym.maxCap})
+                            </Link>
+                        </h3>
                         <ul>
                             {gym.equipment.map((item) => (
                                 <li key={item.itemID} className="equipment-item">
