@@ -38,6 +38,10 @@ Do this for the following folders:
 - server/booking-service/
 - server/user-service/
 
+  In the microservice folder (Occupancy-service), install the dependencies:
+  -npm install mqtt
+
+
 # 2. Run the User Service:
 Navigate to the user-service folder:
 - cd server/user-service
@@ -53,6 +57,16 @@ Navigate to the booking-service folder:
 Start the server:
 - node server.js
 - This will start the booking microservice on http://localhost:5002 and communicate with the user-service via gRPC.
+
+# 4. Run the Occupancy Service:
+Navigate to the occupancy-service folder:
+- cd server/occupancy-service
+
+Start the server:
+- node server.js
+- This will start the occupancy microservice on http://localhost:5003 and communicate with the user-service via gRPC and connect to the mqtt broker.
+- Open another command prompt at the occupancy microservice folder, and run node mqttDummyPublish.js to simulate as IoT devices publishing data to the database.
+
 
 # 4. Run the Frontend (Gym Booking):
 Navigate to the gym-booking folder:
