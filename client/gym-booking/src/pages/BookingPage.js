@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { getBookings, createBooking, getUserBookings, deleteBooking, getGymBookings } from '../services/bookingService';
+import { getBookings, createBooking, getUserBookings, deleteBooking, getGymBookings, getGyms } from '../services/bookingService';
 import 'bootstrap/dist/css/bootstrap.min.css'; // Import Bootstrap
 
 
@@ -11,10 +11,26 @@ const BookingPage = () => {
   const [newBooking, setNewBooking] = useState({slot: '', gymId: '' });
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false); // Loading state
+  const [gyms, setGyms] = useState([]); // Store gyms in state
+
 
   useEffect(() => {
     fetchBookings();
+    fetchGyms(); //Fetch gyms on component load
   }, []);
+
+// Function to fetch gyms from the API
+const fetchGyms = async () => {
+  setLoading(true);
+  try {
+    const response = await getGyms(); // Use getGyms from bookingService.js
+    setGyms(response); // Assuming response contains an array of gyms
+  } catch (error) {
+    console.error('Failed to fetch gyms:', error);
+  } finally {
+    setLoading(false);
+  }
+};
 
   // Function to fetch bookings from the API
   const fetchBookings = async () => {
@@ -153,32 +169,38 @@ const BookingPage = () => {
 
         <h3>Create a New Booking</h3>
 
-        {/* Booking form */}
-        <form onSubmit={handleSubmit} className="mb-4">
+          {/* Booking form */}
+          <form onSubmit={handleSubmit} className="mb-4">
           <div className="mb-3">
-            <input
-              type="text"
-              name="slot"
-              className="form-control"
-              placeholder="Time Slot"
-              value={newBooking.slot}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          <div className="mb-3">
-            <input
-              type="text"
-              name="gymId"
-              className="form-control"
-              placeholder="Gym ID"
-              value={newBooking.gymId}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          <button type="submit" className="btn btn-primary" disabled={loading}>Create Booking</button>
-        </form>
+          <input
+          type="text"
+          name="slot"
+          className="form-control"
+          placeholder="Time Slot"
+          value={newBooking.slot}
+          onChange={handleChange}
+          required
+        />
+      </div>
+      <div className="mb-3">
+        <select
+          name="gymId"
+          className="form-control"
+          value={newBooking.gymId}
+          onChange={handleChange}
+          required
+        >
+          <option value="">Select Gym</option>
+          {gyms.map((gym) => (
+          <option key={gym.gymID} value={gym.gymID}>
+            {gym.gymName}
+          </option>
+        ))}
+     </select>
+    </div>
+    <button type="submit" className="btn btn-primary" disabled={loading}>Create Booking</button>
+    </form>
+
 
         <h3>Your Bookings</h3>
         {/* Display user bookings */}
@@ -192,20 +214,26 @@ const BookingPage = () => {
         </ul>
 
         <h3>Search bookings by Gym ID</h3>
-        <form onSubmit={handleGymBookingSearch} className="mb-4">
-          <div className="mb-3">
-            <input
-              type="text"
-              name="gymIdSearch"
-              className="form-control"
-              placeholder="Gym ID Search"
-              value={gymIdSearch}
-              onChange={(e) => setGymIdSearch(e.target.value)}
-              required
-            />
-          </div>
-          <button type="submit" className="btn btn-primary" disabled={loading}>Search</button>
-        </form>
+<form onSubmit={handleGymBookingSearch} className="mb-4">
+  <div className="mb-3">
+    <select
+      name="gymIdSearch"
+      className="form-control"
+      value={gymIdSearch}
+      onChange={(e) => setGymIdSearch(e.target.value)}
+      required
+    >
+      <option value="">Select Gym</option> {/* Default option to prompt the user to select */}
+      {gyms.map((gym) => (
+        <option key={gym.gymID} value={gym.gymID}>
+          {gym.gymName}
+        </option>
+      ))}
+    </select>
+  </div>
+  <button type="submit" className="btn btn-primary" disabled={loading}>Search</button>
+</form>
+
 
         {/* Display gym bookings */}
         <ul className="list-group">

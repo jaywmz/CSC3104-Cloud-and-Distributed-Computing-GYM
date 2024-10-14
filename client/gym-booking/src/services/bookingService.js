@@ -14,6 +14,18 @@ export const getBookings = async () => {
   }
 };
 
+// Function to fetch all gyms
+export const getGyms = async () => {
+  try {
+    
+    const response = await axios.get('http://localhost:5003/api/get-gyms');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching gyms:', error.response || error.message);
+    throw error;
+  }
+};
+
 // Function to fetch user's bookings
 export const getUserBookings = async () => {
   try {
