@@ -1,0 +1,39 @@
+.booking-page {
+    background: linear-gradient(135deg, #d3cce3, #e9e4f0);
+    padding: 30px;
+    min-height: 100vh;
+  }
+  
+  .card {
+    border-radius: 15px;
+    overflow: hidden;
+  }
+  
+  .btn-gradient {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    transition: all 0.3s ease;
+  }
+  
+  .btn-gradient:hover {
+    background: linear-gradient(135deg, #764ba2, #667eea);
+  }
+  
+  .bg-gradient-primary {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+  }
+  
+  .spinner-border {
+    margin-top: 20px;
+  }
+  
+  .list-group-item {
+    border-radius: 10px;
+    transition: box-shadow 0.3s ease;
+  }
+  
+  .list-group-item:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+  
