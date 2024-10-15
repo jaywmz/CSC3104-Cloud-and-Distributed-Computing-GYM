@@ -9,6 +9,7 @@ import AdminPage from './pages/AdminPage';
 import GymPage from './pages/GymPage';
 import ProtectedRoute from './components/ProtectedRoute'; // Import ProtectedRoute
 import './App.css';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 const App = () => {
   return (

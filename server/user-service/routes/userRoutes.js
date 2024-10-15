@@ -61,7 +61,9 @@ router.post('/login', async (req, res) => {
       return res.status(401).send('Invalid credentials');
     }
 
-    const token = jwt.sign({ username, role: user.role }, 'secretkey', { expiresIn: '1h' });
+    // Add an expiration time for the token (e.g., 1 hour)
+    const token = jwt.sign({ username, role: user.role }, process.env.JWT_SECRET || 'secretkey', { expiresIn: '30s' });
+
     res.json({ token });
   } catch (error) {
     console.error('Error during login:', error);

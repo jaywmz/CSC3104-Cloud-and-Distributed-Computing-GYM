@@ -24,7 +24,7 @@ const LoginPage = () => {
       setMessage('Login successful!');
       const decodedToken = JSON.parse(atob(response.token.split('.')[1])); // Decode JWT token
      
-      const role=decodedToken.role
+      const role = decodedToken.role;
       localStorage.setItem('role', role);
       if (decodedToken.role === 'admin') {
         navigate('/occupancy-page');
