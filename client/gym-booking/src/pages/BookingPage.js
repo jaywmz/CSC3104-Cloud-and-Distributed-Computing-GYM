@@ -90,7 +90,13 @@ const fetchGyms = async () => {
       setMessage('Booking created successfully!');
       setNewBooking({ slot: '', gymId: '' }); // Reset the form
     } catch (error) {
-      setMessage('Failed to create booking.');
+      if (error.response && error.response.data && error.response.data.details) {
+        setMessage(`Failed to create booking: ${error.response.data.details}`);
+      } else if (error.message.includes('Duplicate booking')) {
+        setMessage('Failed to create booking: Duplicate booking. You already have a booking at the same time and gym.');
+      } else {
+        setMessage('Failed to create booking.');
+      }
     } finally {
       setLoading(false); // Stop loading
     }

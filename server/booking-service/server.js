@@ -90,6 +90,10 @@ app.post('/api/bookings', (req, res) => {
   // Save booking to MongoDB using createBooking gRPC method
   bookingClient.CreateBooking({ slot, gymId }, token, (error, booking) => {
     if (error) {
+      if (error.code === grpc.status.ALREADY_EXISTS) {
+        // Return 409 status code for duplicate bookings
+      res.status(409).send({ details: error.details });
+      }else
       console.error('Error creating booking via gRPC:', error);
       res.status(500).send('Failed to create booking');
     } else {
@@ -265,6 +269,23 @@ async function createBooking (call, callback) {
 
     const db = await connectDB();
     const bookingsCollection = db.collection('bookings');
+    const {slot, gymId}=call.request;
+
+    // Check for duplicate booking (same user, gymId, and slot)
+    const duplicateBooking = await bookingsCollection.findOne({
+      user: user,
+      gymId: parseInt(gymId), // Make sure gymId is an integer
+      slot: slot
+    });
+
+    if (duplicateBooking) {
+      // If a duplicate booking is found, return an error response
+      return callback({
+        code: grpc.status.ALREADY_EXISTS,
+        details: 'Duplicate booking: You already have a booking at the same time and gym.',
+      });
+    }
+
     const booking = call.request;
     booking.user = user;
     booking.id = Math.floor(Math.random() * 1000); // Generate a random ID (but can be duplicated right now with existing entries)
