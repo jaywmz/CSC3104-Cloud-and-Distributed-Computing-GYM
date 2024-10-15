@@ -88,12 +88,13 @@ app.post('/api/bookings', (req, res) => {
     if (error) {
       if (error.code === grpc.status.ALREADY_EXISTS) {
         // Return 409 status code for duplicate bookings
-      res.status(409).send({ details: error.details });
-      }else
-      console.error('Error creating booking via gRPC:', error);
-      res.status(500).send('Failed to create booking');
-    } else {
-      res.status(200).json(booking);
+        res.status(409).send({ details: error.details });
+      }else{
+        console.error('Error creating booking via gRPC:', error);
+        res.status(500).send('Failed to create booking');
+      }
+      } else {
+        res.status(200).json(booking);
     }
   });
 });

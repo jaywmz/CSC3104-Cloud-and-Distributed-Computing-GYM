@@ -95,7 +95,7 @@ const BookingPage = () => {
       setMessage('Booking created successfully!');
       setNewBooking({ slot: '', gymId: '' }); // Reset the form
     } catch (error) {
-      setMessage('Failed to create booking.');
+      setMessage(error.message);
     } finally {
       setLoading(false);
     }
@@ -140,7 +140,11 @@ const BookingPage = () => {
       </nav>
 
       {/* Alerts */}
-      {message && <div className={`alert ${message.includes('Failed') ? 'alert-danger' : 'alert-success'} shadow-sm`}>{message}</div>}
+      {message && (
+        <div className={`alert ${/Failed|Duplicate/i.test(message) ? 'alert-danger' : 'alert-success'} shadow-sm`}>
+          {message}
+        </div>
+      )}
 
       {/* Loading Spinner */}
       {loading && (
