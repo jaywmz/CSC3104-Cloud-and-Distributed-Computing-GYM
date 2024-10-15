@@ -120,9 +120,9 @@ const BookingPage = () => {
   };
 
   return (
-    <div className="booking-page">
+    <div className="booking-page container mt-3">
       {/* Navbar */}
-      <nav className="navbar navbar-expand-lg navbar-light bg-light mb-4 shadow-sm">
+      <nav className="navbar navbar-expand-lg navbar-light bg-light mb-3 shadow-sm p-2">
         <div className="container-fluid">
           <a className="navbar-brand" href="/">Gym Booking</a>
           <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -131,7 +131,7 @@ const BookingPage = () => {
           <div className="collapse navbar-collapse" id="navbarNav">
             <ul className="navbar-nav ms-auto">
               <li className="nav-item">
-                <button onClick={handleLogout} className="btn btn-gradient">Logout</button>
+                <button onClick={handleLogout} className="btn btn-gradient btn-sm">Logout</button>
               </li>
             </ul>
           </div>
@@ -155,17 +155,17 @@ const BookingPage = () => {
       )}
 
       {/* Create or Update Booking */}
-      <div className="card mb-4 shadow-lg rounded">
-        <div className="card-header bg-gradient-primary text-white">
+      <div className="card mb-3 shadow-sm rounded">
+        <div className="card-header bg-gradient-primary text-white p-2">
           {editingBooking ? 'Edit Booking' : 'Create a New Booking'}
         </div>
-        <div className="card-body">
+        <div className="card-body p-2">
           <form onSubmit={editingBooking ? handleUpdateBooking : handleSubmit}>
-            <div className="mb-3">
-              <label htmlFor="slot" className="form-label">Time Slot</label>
+            <div className="mb-2">
+              <label htmlFor="slot" className="form-label small">Time Slot</label>
               <select
                 name="slot"
-                className="form-control"
+                className="form-control form-control-sm"
                 value={newBooking.slot}
                 onChange={(e) => setNewBooking({ ...newBooking, slot: e.target.value })}
                 required
@@ -176,11 +176,11 @@ const BookingPage = () => {
                 ))}
               </select>
             </div>
-            <div className="mb-3">
-              <label htmlFor="gymId" className="form-label">Select Gym</label>
+            <div className="mb-2">
+              <label htmlFor="gymId" className="form-label small">Select Gym</label>
               <select
                 name="gymId"
-                className="form-control"
+                className="form-control form-control-sm"
                 value={newBooking.gymId}
                 onChange={(e) => setNewBooking({ ...newBooking, gymId: e.target.value })}
                 required
@@ -193,7 +193,7 @@ const BookingPage = () => {
                 ))}
               </select>
             </div>
-            <button type="submit" className="btn btn-gradient w-100" disabled={loading}>
+            <button type="submit" className="btn btn-gradient btn-sm w-100" disabled={loading}>
               {editingBooking ? 'Update Booking' : 'Create Booking'}
             </button>
           </form>
@@ -201,16 +201,21 @@ const BookingPage = () => {
       </div>
 
       {/* User's Bookings */}
-      <div className="card mb-4 shadow-lg rounded">
-        <div className="card-header bg-gradient-primary text-white">Your Bookings</div>
-        <div className="card-body">
-          <ul className="list-group">
-            {userBookings.length === 0 && !loading && <li className="list-group-item">No bookings found.</li>}
+      <div className="card mb-3 shadow-sm rounded">
+        <div className="card-header bg-gradient-primary text-white p-2">Your Bookings</div>
+        <div className="card-body p-2">
+          <ul className="list-group list-group-flush">
+            {userBookings.length === 0 && !loading && <li className="list-group-item small">No bookings found.</li>}
             {userBookings.map((booking) => (
-              <li key={booking.id} className="list-group-item">
-                {getGymNameById(booking.gymId)} - {booking.slot}
-                <button className="btn btn-sm btn-primary ms-2" onClick={() => handleEditBooking(booking)}>Edit</button>
-                <button className="btn btn-sm btn-danger ms-2" onClick={() => handleDeleteBooking(booking.id)}>Delete</button>
+              <li key={booking.id} className="list-group-item small p-2 d-flex justify-content-between align-items-center">
+                <div>
+                  <strong>Time Slot:</strong> {booking.slot} <br />
+                  <strong>Gym:</strong> {getGymNameById(booking.gymId)}
+                </div>
+                <div>
+                  <button className="btn btn-warning btn-sm me-1" onClick={() => handleEditBooking(booking)}>Edit</button>
+                  <button className="btn btn-danger btn-sm" onClick={() => handleDeleteBooking(booking.id)}>Delete</button>
+                </div>
               </li>
             ))}
           </ul>
