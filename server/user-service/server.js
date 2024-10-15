@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
@@ -29,7 +31,7 @@ const userProto = grpc.loadPackageDefinition(packageDefinition).UserService;
 
 // Mongoose User Schema (could reuse the same MongoDB connection from routes)
 const { MongoClient } = require('mongodb');
-const uri = "mongodb+srv://csc3104grp:9FzZmCSr5pDRqvL9@userdatabase.gfv68.mongodb.net/?retryWrites=true&w=majority";
+const uri = process.env.MONGO_URI;
 let db;
 
 // Middleware to connect to MongoDB with error handling
@@ -120,24 +122,38 @@ const getAllUsers = async (call, callback) => {
   }
 };
 
-// call consist of the token from calling client, callback is the function injected into the parameters from the calling client.
+// call consists of the token from the calling client, callback is the function injected into the parameters from the calling client.
 function getUserFromToken(call, callback) {
   try {
-    jwt.verify(call.request.token, 'secretkey', (error, user) => {
+    const token = call.request.token;
+    
+    // Ensure the JWT secret is securely stored in environment variables
+    const secretKey = process.env.JWT_SECRET || 'fallbackSecretKey'; // Load from .env
+
+    // Verify the token using the JWT secret
+    jwt.verify(token, secretKey, (error, user) => {
       if (error) {
-        return reject(error);
+        console.error('Error verifying token:', error);
+        // Return an error if the token is invalid
+        return callback({
+          code: grpc.status.UNAUTHENTICATED,
+          details: "Invalid token",
+        });
       }
-      // callback returns two results, (error, response). So null error, and response is user.username
-      callback(null, { username: user.username});
+      
+      // If token is valid, return the username
+      callback(null, { username: user.username });
     });
-  }
-  catch (error) {
+  } catch (error) {
+    console.error('Error during token verification:', error);
+    // Return an internal error if something went wrong
     callback({
       code: grpc.status.INTERNAL,
       details: "Internal server error",
     });
   }
 };
+
 
 // Start gRPC server
 const grpcServer = new grpc.Server();

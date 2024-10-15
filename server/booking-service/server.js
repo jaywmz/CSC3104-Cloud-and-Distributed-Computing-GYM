@@ -1,3 +1,5 @@
+require('dotenv').config(); // Load environment variables
+
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
@@ -14,7 +16,7 @@ app.use(bodyParser.json());
 // MongoDB connection string
 const { MongoClient } = require('mongodb');
 const { get } = require('http');
-const uri = "mongodb+srv://lichtwx:LzKVEOYBsPgSETjX@cluster0.obfql.mongodb.net/?retryWrites=true&w=majority";
+const uri = process.env.MONGO_URI || "mongodb+srv://lichtwx:LzKVEOYBsPgSETjX@cluster0.obfql.mongodb.net/?retryWrites=true&w=majority";
 
 // Middleware to connect to MongoDB with error handling
 let db;
@@ -56,6 +58,7 @@ function getUserFromToken(token) {
   return new Promise((resolve, reject) => {
     userClient.GetUserFromToken({ token }, (error, response) => {
       if (error) {
+        console.error('Error fetching user from token:', error);
         return reject({
           code: grpc.status.INTERNAL,
           details: 'Error fetching user bookings',
@@ -258,24 +261,23 @@ async function getGymBookings (call, callback) {
   }
 };
 
-// Create a new booking
-async function createBooking (call, callback) {
-  try{
+async function createBooking(call, callback) {
+  try {
     // Extract the token from the metadata 
-    const token = call.metadata.get('authorization')[0];
-    
+    const token = call.metadata.get('authorization')[0]; // Get token from metadata
+
     // Decode the token to get the user
     const user = await getUserFromToken(token);
 
     const db = await connectDB();
     const bookingsCollection = db.collection('bookings');
-    const {slot, gymId}=call.request;
+    const { slot, gymId } = call.request;
 
     // Check for duplicate booking (same user, gymId, and slot)
     const duplicateBooking = await bookingsCollection.findOne({
       user: user,
       gymId: parseInt(gymId), // Make sure gymId is an integer
-      slot: slot
+      slot: slot,
     });
 
     if (duplicateBooking) {
@@ -288,17 +290,18 @@ async function createBooking (call, callback) {
 
     const booking = call.request;
     booking.user = user;
-    booking.id = Math.floor(Math.random() * 1000); // Generate a random ID (but can be duplicated right now with existing entries)
+    booking.id = Math.floor(Math.random() * 1000); // Generate a random ID
     booking.gymId = parseInt(booking.gymId); // Convert gymId string to integer
     bookingsCollection.insertOne(booking);
     callback(null, booking);
-  }catch(error){
+  } catch (error) {
+    console.error('Error creating booking:', error);
     callback({
       code: grpc.status.INTERNAL,
       details: 'Error creating booking',
     });
   }
-};
+}
 
 // Delete a booking by id
 async function deleteBooking(call, callback) {

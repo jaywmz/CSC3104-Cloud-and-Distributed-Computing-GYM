@@ -1,3 +1,5 @@
+require('dotenv').config(); // Load environment variables
+
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -14,7 +16,7 @@ const PORT = process.env.PORT || 5003;
 
 /* DATABASE SET UP */
 const { MongoClient, ServerApiVersion } = require('mongodb');
-const uri = "mongodb+srv://leooh29:DoHTA3c5W08GHGQq@occupancydb.xq4hb.mongodb.net/?retryWrites=true&w=majority&appName=OccupancyDB";
+const uri = process.env.MONGO_URI || "mongodb+srv://leooh29:DoHTA3c5W08GHGQq@occupancydb.xq4hb.mongodb.net/?retryWrites=true&w=majority&appName=OccupancyDB";
 const client = new MongoClient(uri, {
     serverApi: {
       version: ServerApiVersion.v1,
