@@ -68,9 +68,14 @@ export const createBooking = async (bookingData) => {
     });
     return response.data;
   } catch (error) {
+    if (error.response && error.response.status === 409) {
+      // Handle duplicate booking error
+      throw new Error('Duplicate booking: You already have a booking at the same time and gym.');
+    } else {
     console.error('Error creating booking:', error.response || error.message);
     throw error;
   }
+}
 };
 
 // Function to delete a booking
