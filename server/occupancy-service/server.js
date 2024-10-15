@@ -294,12 +294,11 @@ app.post('/api/create-equipment', async (req, res) => {
 app.get('/api/get-gyms', async (req, res) => {
     occupancyClient.GetGyms({}, (error, response) => {
         if (error) {
-          console.error('Error fetching gyms via gRPC:', error);
-          res.status(500).send('Failed to fetch bookings.');
-        } else {
-          res.status(200).json(response.gyms);
+            console.error('Error fetching gyms via gRPC:', error);
+            return res.status(500).send('Failed to fetch gyms.'); // Use return to prevent multiple responses
         }
-      });
+        res.status(200).json(response.gyms); // Ensure only one response is sent
+    });
 });
 
 // Get all gyms (gRPC)

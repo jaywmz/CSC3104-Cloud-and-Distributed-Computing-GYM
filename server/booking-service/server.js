@@ -77,25 +77,20 @@ function getUserFromToken(token) {
 
 // Booking route with gRPC call to validate user and saving to MongoDB
 app.post('/api/bookings', (req, res) => {
-  // Pass the token from request into the gRPC call metadata (in future, cannot use HTTP headers as no HTTP call into gRPC. so do this for now)
   const token = new grpc.Metadata();
   token.add('Authorization', `${req.header('Authorization').split(' ')[1]}`);
 
   const { slot, gymId } = req.body;
 
-  // Save booking to MongoDB using createBooking gRPC method
   bookingClient.CreateBooking({ slot, gymId }, token, (error, booking) => {
     if (error) {
       if (error.code === grpc.status.ALREADY_EXISTS) {
-        // Return 409 status code for duplicate bookings
-        res.status(409).send({ details: error.details });
-      }else{
-        console.error('Error creating booking via gRPC:', error);
-        res.status(500).send('Failed to create booking');
+        return res.status(409).send({ details: error.details }); // Ensure return to avoid sending multiple responses
       }
-      } else {
-        res.status(200).json(booking);
+      console.error('Error creating booking via gRPC:', error);
+      return res.status(500).send('Failed to create booking'); // Ensure return
     }
+    res.status(200).json(booking); // Only one response sent
   });
 });
 
