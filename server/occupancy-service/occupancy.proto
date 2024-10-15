@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+service OccupancyService {
+    rpc GetGyms(voidNoParam) returns (gymList);
+}
+
+message voidNoParam {}
+
+message gym {
+    int32 gymID = 1;
+    string gymName = 2;
+    int32 maxCap = 3;
+}
+
+message gymList {
+    repeated gym gyms = 1;
+}

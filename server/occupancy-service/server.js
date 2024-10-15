@@ -38,6 +38,16 @@ const packageDefinition = protoLoader.loadSync(PROTO_PATH, {});
 const userProto = grpc.loadPackageDefinition(packageDefinition).UserService;
 const userClient = new userProto('localhost:50051', grpc.credentials.createInsecure());
 
+// gRPC server setup for occupancy-service
+const PROTO_PATH_OCCUPANCY = path.join(__dirname, 'occupancy.proto');
+const packageDefinitionOccupancy = protoLoader.loadSync(PROTO_PATH_OCCUPANCY, {});
+const occupancyProto = grpc.loadPackageDefinition(packageDefinitionOccupancy).OccupancyService;
+
+// Create a gRPC client for occupancy-service
+// REMOVE THIS WHEN REMOVING EXPRESS ROUTES (this is so that the express routes can call the gRPC methods)
+// in future it calls the gRPC methods directly, not through express routes
+const occupancyClient = new occupancyProto('localhost:50053', grpc.credentials.createInsecure());
+
 /* MQTT SET UP */
 // Connect to the MQTT broker
 const mqttClient = mqtt.connect('mqtt://localhost:1883');
@@ -280,17 +290,40 @@ app.post('/api/create-equipment', async (req, res) => {
     }
 });
 
-// Get Gyms
+// Get Gyms (calls gRPC service from the API call)
 app.get('/api/get-gyms', async (req, res) => {
-    try {
-        const gyms = await gymsCollection.find().toArray();
-        res.status(200).json(gyms); // Send the list of gyms as a response
-    } catch (err) {
-        console.error('Error fetching gyms:', err);
-        res.status(500).json({ message: 'Failed to fetch gyms' });
-    }
+    occupancyClient.GetGyms({}, (error, response) => {
+        if (error) {
+          console.error('Error fetching gyms via gRPC:', error);
+          res.status(500).send('Failed to fetch bookings.');
+        } else {
+          res.status(200).json(response.gyms);
+        }
+      });
 });
+
+// Get all gyms (gRPC)
+async function getGyms (call, callback) {
+    try{
+        const gyms = await gymsCollection.find().toArray();
+        callback(null, {gyms});
+    }catch(error){
+        callback({
+        code: grpc.status.INTERNAL,
+        details: 'Error fetching gyms list',
+      });
+    }
+  };
 
 app.listen(PORT, () => {
     console.log(`Occupancy service running on port ${PORT}`);
+});
+
+// Start occupancy gRPC server
+const grpcServer = new grpc.Server();
+grpcServer.addService(occupancyProto.service, { 
+  GetGyms : getGyms
+});
+grpcServer.bindAsync('0.0.0.0:50053', grpc.ServerCredentials.createInsecure(), () => {
+  console.log('gRPC server running at http://0.0.0.0:50053');
 });

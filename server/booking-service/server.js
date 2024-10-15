@@ -6,7 +6,6 @@ const bodyParser = require('body-parser');
 const grpc = require('@grpc/grpc-js');
 const protoLoader = require('@grpc/proto-loader');
 const path = require('path');
-const jwt = require('jsonwebtoken');
 
 // Initialize the Express app
 const app = express();
@@ -15,7 +14,6 @@ app.use(bodyParser.json());
 
 // MongoDB connection string
 const { MongoClient } = require('mongodb');
-const { get } = require('http');
 const uri = process.env.MONGO_URI || "mongodb+srv://lichtwx:LzKVEOYBsPgSETjX@cluster0.obfql.mongodb.net/?retryWrites=true&w=majority";
 
 // Middleware to connect to MongoDB with error handling
@@ -23,7 +21,7 @@ let db;
 async function connectDB() {
   if (!db) {
     try {
-      const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+      const client = new MongoClient(uri);
       await client.connect();
       db = client.db('bookingServiceDB');
       console.log('Connected to MongoDB');
@@ -48,6 +46,14 @@ const userProto = grpc.loadPackageDefinition(packageDefinition).UserService;
 // Create a gRPC client for user-service
 const userClient = new userProto('localhost:50051', grpc.credentials.createInsecure());
 
+// gRPC server setup for occupancy-service
+const PROTO_PATH_OCCUPANCY = path.join(__dirname, '../occupancy-service/occupancy.proto');
+const packageDefinitionOccupancy = protoLoader.loadSync(PROTO_PATH_OCCUPANCY, {});
+const occupancyProto = grpc.loadPackageDefinition(packageDefinitionOccupancy).OccupancyService;
+
+// Create a gRPC client for occupancy-service
+const occupancyClient = new occupancyProto('localhost:50053', grpc.credentials.createInsecure());
+
 // Create a gRPC client for booking-service
 // REMOVE THIS WHEN REMOVING EXPRESS ROUTES (this is so that the express routes can call the gRPC methods)
 // in future it calls the gRPC methods directly, not through express routes
@@ -69,19 +75,6 @@ function getUserFromToken(token) {
   });
 }
 
-// Function to validate user using gRPC
-const checkUser = (username, callback) => {
-  userClient.GetUser({ username }, (error, response) => {
-    if (error) {
-      console.error('Error fetching user via gRPC:', error);
-      callback(null); // Return null if user not found
-    } else {
-      console.log('User data:', response);
-      callback(response); // Return the user data if found
-    }
-  });
-};
-
 // Booking route with gRPC call to validate user and saving to MongoDB
 app.post('/api/bookings', (req, res) => {
   // Pass the token from request into the gRPC call metadata (in future, cannot use HTTP headers as no HTTP call into gRPC. so do this for now)
@@ -101,6 +94,18 @@ app.post('/api/bookings', (req, res) => {
       res.status(500).send('Failed to create booking');
     } else {
       res.status(200).json(booking);
+    }
+  });
+});
+
+// Route to fetch all gyms from occupancy-service
+app.get('/api/bookings/getGyms', (req, res) => {
+  occupancyClient.GetGyms({}, (error, response) => {
+    if (error) {
+      console.error('Error fetching gyms via gRPC:', error);
+      res.status(500).send('Failed to fetch gyms.');
+    } else {
+      res.status(200).json(response.gyms);
     }
   });
 });
