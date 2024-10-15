@@ -4,6 +4,9 @@ server/booking-service/node_modules/
 server/user-service/node_modules/
 client/gym-booking/node_modules/
 
+# Ignore environment files
+.env
+
 # Ignore log files
 *.log
 
