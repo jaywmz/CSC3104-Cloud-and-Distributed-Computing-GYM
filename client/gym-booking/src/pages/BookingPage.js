@@ -13,6 +13,25 @@ const BookingPage = () => {
   const [loading, setLoading] = useState(false); // Loading state
   const [gyms, setGyms] = useState([]); // Store gyms in state
 
+  // Define available timeslots
+  const timeslots = [
+    '06:00 AM - 07:00 AM',
+    '07:00 AM - 08:00 AM',
+    '08:00 AM - 09:00 AM',
+    '09:00 AM - 10:00 AM',
+    '10:00 AM - 11:00 AM',
+    '11:00 AM - 12:00 PM',
+    '12:00 PM - 01:00 PM',
+    '01:00 PM - 02:00 PM',
+    '02:00 PM - 03:00 PM',
+    '03:00 PM - 04:00 PM',
+    '04:00 PM - 05:00 PM',
+    '05:00 PM - 06:00 PM',
+    '06:00 PM - 07:00 PM',
+    '07:00 PM - 08:00 PM',
+    '08:00 PM - 09:00 PM',
+  ];
+
   useEffect(() => {
     fetchBookings();
     fetchGyms(); // Fetch gyms on component load
@@ -155,15 +174,18 @@ const BookingPage = () => {
           <form onSubmit={handleSubmit}>
             <div className="mb-3">
               <label htmlFor="slot" className="form-label">Time Slot</label>
-              <input
-                type="text"
+              <select
                 name="slot"
                 className="form-control"
-                placeholder="Enter Time Slot"
                 value={newBooking.slot}
                 onChange={handleChange}
                 required
-              />
+              >
+                <option value="">Select Time Slot</option>
+                {timeslots.map((slot, index) => (
+                  <option key={index} value={slot}>{slot}</option>
+                ))}
+              </select>
             </div>
             <div className="mb-3">
               <label htmlFor="gymId" className="form-label">Select Gym</label>
@@ -210,7 +232,7 @@ const BookingPage = () => {
         <div className="card-body">
           <form onSubmit={handleGymBookingSearch}>
             <div className="mb-3">
-              <label htmlFor="gymIdSearch" className="form-label">Select Gym</label>
+              <label htmlFor="gymIdSearch" className="form-label">Gym</label>
               <select
                 name="gymIdSearch"
                 className="form-control"
@@ -234,7 +256,7 @@ const BookingPage = () => {
       </div>
 
       {/* Gym Bookings */}
-      <div className="card shadow-lg rounded">
+      <div className="card mb-4 shadow-lg rounded">
         <div className="card-header bg-gradient-primary text-white">Gym Bookings</div>
         <div className="card-body">
           <ul className="list-group">
