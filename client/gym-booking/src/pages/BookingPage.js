@@ -1,17 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { getBookings, createBooking, getUserBookings, deleteBooking, getGymBookings, getGyms } from '../services/bookingService';
+import { createBooking, getUserBookings, getGyms, updateBooking, deleteBooking } from '../services/bookingService';
 import 'bootstrap/dist/css/bootstrap.min.css'; // Import Bootstrap
 import '../css/BookingPage.css'; // Custom CSS file for extra styles
 
 const BookingPage = () => {
-  const [bookings, setBookings] = useState([]);
   const [userBookings, setUserBookings] = useState([]);
-  const [gymBookings, setGymBookings] = useState([]);
-  const [gymIdSearch, setGymIdSearch] = useState('');
   const [newBooking, setNewBooking] = useState({ slot: '', gymId: '' });
+  const [editingBooking, setEditingBooking] = useState(null); // For edit mode
+  const [gyms, setGyms] = useState([]); // Store gyms in state
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false); // Loading state
-  const [gyms, setGyms] = useState([]); // Store gyms in state
 
   // Define available timeslots
   const timeslots = [
@@ -33,15 +31,15 @@ const BookingPage = () => {
   ];
 
   useEffect(() => {
-    fetchBookings();
-    fetchGyms(); // Fetch gyms on component load
+    fetchUserBookings();
+    fetchGyms();
   }, []);
 
   const fetchGyms = async () => {
     setLoading(true);
     try {
       const response = await getGyms();
-      setGyms(response); // Assuming response contains an array of gyms
+      setGyms(response || []);
     } catch (error) {
       console.error('Failed to fetch gyms:', error);
     } finally {
@@ -49,18 +47,16 @@ const BookingPage = () => {
     }
   };
 
-  const fetchBookings = async () => {
+  const fetchUserBookings = async () => {
     setLoading(true);
     try {
-      const allBookings = await getBookings();
-      setBookings(allBookings || []);
       const userBookings = await getUserBookings();
       setUserBookings(userBookings || []);
       setMessage('');
     } catch (error) {
-      setMessage('Failed to fetch bookings.');
+      setMessage('Failed to fetch your bookings.');
     } finally {
-      setLoading(false); // Stop the loading state
+      setLoading(false);
     }
   };
 
@@ -68,22 +64,34 @@ const BookingPage = () => {
     setLoading(true);
     try {
       await deleteBooking(id);
-      await fetchBookings(); // Refresh the bookings list after deletion
+      await fetchUserBookings(); // Refresh the bookings list after deletion
       setMessage('Booking deleted successfully!');
     } catch (error) {
-      if (error.response.status === 403) {
-        setMessage('Failed: You are not authorized to delete this booking.');
-      } else {
-        setMessage('Failed to delete booking.');
-      }
+      setMessage('Failed to delete booking.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setNewBooking({ ...newBooking, [name]: value });
+  const handleEditBooking = (booking) => {
+    setEditingBooking(booking);
+    setNewBooking({ slot: booking.slot, gymId: booking.gymId });
+  };
+
+  const handleUpdateBooking = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      await updateBooking(editingBooking.id, newBooking);
+      setMessage('Booking updated successfully!');
+      setEditingBooking(null); // Exit edit mode
+      await fetchUserBookings(); // Refresh bookings after update
+      setNewBooking({ slot: '', gymId: '' }); // Reset the form
+    } catch (error) {
+      setMessage('Failed to update booking.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -91,28 +99,19 @@ const BookingPage = () => {
     setLoading(true);
     try {
       await createBooking(newBooking);
-      await fetchBookings(); // Refresh the bookings list after submission
+      await fetchUserBookings(); // Refresh the bookings list after submission
       setMessage('Booking created successfully!');
       setNewBooking({ slot: '', gymId: '' }); // Reset the form
     } catch (error) {
-      setMessage(error.message);
+      setMessage('Failed to create booking.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleGymBookingSearch = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const gymBookings = await getGymBookings(gymIdSearch);
-      setGymBookings(gymBookings || []);
-      setMessage('');
-    } catch (error) {
-      setMessage('Failed to fetch bookings.');
-    } finally {
-      setLoading(false);
-    }
+  const getGymNameById = (gymId) => {
+    const gym = gyms.find((g) => g.gymID === gymId);
+    return gym ? gym.gymName : 'Unknown Gym';
   };
 
   const handleLogout = () => {
@@ -155,34 +154,20 @@ const BookingPage = () => {
         </div>
       )}
 
-      {/* All Bookings */}
+      {/* Create or Update Booking */}
       <div className="card mb-4 shadow-lg rounded">
-        <div className="card-header bg-gradient-primary text-white">All Gym Bookings</div>
-        <div className="card-body">
-          <ul className="list-group">
-            {bookings.length === 0 && !loading && <li className="list-group-item">No bookings found.</li>}
-            {bookings.map((booking) => (
-              <li key={booking.id} className="list-group-item d-flex justify-content-between align-items-center">
-                {booking.user} - {booking.slot} - {booking.gymId}
-                <button onClick={() => handleDeleteBooking(booking.id)} className="btn btn-danger btn-sm">Delete</button>
-              </li>
-            ))}
-          </ul>
+        <div className="card-header bg-gradient-primary text-white">
+          {editingBooking ? 'Edit Booking' : 'Create a New Booking'}
         </div>
-      </div>
-
-      {/* Create a New Booking */}
-      <div className="card mb-4 shadow-lg rounded">
-        <div className="card-header bg-gradient-primary text-white">Create a New Booking</div>
         <div className="card-body">
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={editingBooking ? handleUpdateBooking : handleSubmit}>
             <div className="mb-3">
               <label htmlFor="slot" className="form-label">Time Slot</label>
               <select
                 name="slot"
                 className="form-control"
                 value={newBooking.slot}
-                onChange={handleChange}
+                onChange={(e) => setNewBooking({ ...newBooking, slot: e.target.value })}
                 required
               >
                 <option value="">Select Time Slot</option>
@@ -197,7 +182,7 @@ const BookingPage = () => {
                 name="gymId"
                 className="form-control"
                 value={newBooking.gymId}
-                onChange={handleChange}
+                onChange={(e) => setNewBooking({ ...newBooking, gymId: e.target.value })}
                 required
               >
                 <option value="">Select Gym</option>
@@ -209,7 +194,7 @@ const BookingPage = () => {
               </select>
             </div>
             <button type="submit" className="btn btn-gradient w-100" disabled={loading}>
-              Create Booking
+              {editingBooking ? 'Update Booking' : 'Create Booking'}
             </button>
           </form>
         </div>
@@ -223,51 +208,9 @@ const BookingPage = () => {
             {userBookings.length === 0 && !loading && <li className="list-group-item">No bookings found.</li>}
             {userBookings.map((booking) => (
               <li key={booking.id} className="list-group-item">
-                {booking.user} - {booking.slot} - {booking.gymId}
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-
-      {/* Search Bookings by Gym ID */}
-      <div className="card mb-4 shadow-lg rounded">
-        <div className="card-header bg-gradient-primary text-white">Search Bookings by Gym ID</div>
-        <div className="card-body">
-          <form onSubmit={handleGymBookingSearch}>
-            <div className="mb-3">
-              <label htmlFor="gymIdSearch" className="form-label">Gym</label>
-              <select
-                name="gymIdSearch"
-                className="form-control"
-                value={gymIdSearch}
-                onChange={(e) => setGymIdSearch(e.target.value)}
-                required
-              >
-                <option value="">Select Gym</option>
-                {gyms.map((gym) => (
-                  <option key={gym.gymID} value={gym.gymID}>
-                    {gym.gymName}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <button type="submit" className="btn btn-gradient w-100" disabled={loading}>
-              Search
-            </button>
-          </form>
-        </div>
-      </div>
-
-      {/* Gym Bookings */}
-      <div className="card mb-4 shadow-lg rounded">
-        <div className="card-header bg-gradient-primary text-white">Gym Bookings</div>
-        <div className="card-body">
-          <ul className="list-group">
-            {gymBookings.length === 0 && !loading && <li className="list-group-item">No bookings found.</li>}
-            {gymBookings.map((booking) => (
-              <li key={booking.id} className="list-group-item">
-                {booking.user} - {booking.slot} - {booking.gymId}
+                {getGymNameById(booking.gymId)} - {booking.slot}
+                <button className="btn btn-sm btn-primary ms-2" onClick={() => handleEditBooking(booking)}>Edit</button>
+                <button className="btn btn-sm btn-danger ms-2" onClick={() => handleDeleteBooking(booking.id)}>Delete</button>
               </li>
             ))}
           </ul>

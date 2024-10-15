@@ -343,9 +343,73 @@ async function deleteBooking(call, callback) {
 };
 
 // Update a booking
-async function updateBooking(call, callback){
-    
-}; 
+async function updateBooking(call, callback) {
+  try {
+    const token = call.metadata.get('authorization')[0]; // Get token from metadata
+
+    // Decode the token to get the user
+    const user = await getUserFromToken(token);
+
+    const db = await connectDB();
+    const bookingsCollection = db.collection('bookings');
+    const { id, slot, gymId } = call.request;
+
+    // Find the booking by id
+    const booking = await bookingsCollection.findOne({ id: parseInt(id) });
+
+    if (!booking) {
+      // Booking not found
+      return callback({
+        code: grpc.status.NOT_FOUND,
+        details: 'Booking not found',
+      });
+    }
+
+    // Check if the user making the request owns the booking
+    if (booking.user !== user) {
+      return callback({
+        code: grpc.status.PERMISSION_DENIED,
+        details: 'You are not authorized to update this booking',
+      });
+    }
+
+    // Update the booking details
+    const updatedBooking = {
+      ...booking,
+      slot: slot || booking.slot, // Update slot if provided
+      gymId: gymId ? parseInt(gymId) : booking.gymId, // Update gymId if provided
+    };
+
+    await bookingsCollection.updateOne({ id: parseInt(id) }, { $set: updatedBooking });
+    callback(null, updatedBooking); // Respond with the updated booking
+  } catch (error) {
+    console.error('Error updating booking:', error);
+    callback({
+      code: grpc.status.INTERNAL,
+      details: 'Error updating booking',
+    });
+  }
+}
+
+
+// Update a booking
+app.put('/api/bookings/update/:id', (req, res) => {
+  const token = new grpc.Metadata();
+  token.add('Authorization', `${req.header('Authorization').split(' ')[1]}`);
+
+  const { id } = req.params;
+  const { slot, gymId } = req.body;
+
+  bookingClient.UpdateBooking({ id, slot, gymId }, token, (error, booking) => {
+    if (error) {
+      console.error('Error updating booking via gRPC:', error);
+      return res.status(500).send('Failed to update booking');
+    }
+    res.status(200).json(booking);
+  });
+});
+
+
 
 // Start the server
 const PORT = process.env.PORT || 5002;

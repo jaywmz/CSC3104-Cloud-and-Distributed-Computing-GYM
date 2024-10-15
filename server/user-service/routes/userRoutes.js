@@ -62,7 +62,7 @@ router.post('/login', async (req, res) => {
     }
 
     // Add an expiration time for the token (e.g., 1 hour)
-    const token = jwt.sign({ username, role: user.role }, process.env.JWT_SECRET || 'secretkey', { expiresIn: '30s' });
+    const token = jwt.sign({ username, role: user.role }, process.env.JWT_SECRET || 'secretkey', { expiresIn: '1h' });
 
     res.json({ token });
   } catch (error) {

@@ -49,9 +49,9 @@ export const getGymBookings = async (gymId) => {
   try {
     const response = await axios.get(`${API_URL}/gym/${gymId}`);
     return response.data;
-  }catch (error) {
+  } catch (error) {
     console.error('Error fetching gym bookings:', error.response || error.message);
-    throw error
+    throw error;
   }
 };
 
@@ -71,10 +71,27 @@ export const createBooking = async (bookingData) => {
       // Handle duplicate booking error
       throw new Error('Duplicate booking: You already have a booking at the same time and gym.');
     } else {
-    console.error('Error creating booking:', error.response || error.message);
+      console.error('Error creating booking:', error.response || error.message);
+      throw error;
+    }
+  }
+};
+
+// Function to update a booking
+export const updateBooking = async (bookingId, updatedData) => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('No token found. Please log in first.');
+    }
+    const response = await axios.put(`${API_URL}/update/${bookingId}`, updatedData, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error updating booking:', error.response || error.message);
     throw error;
   }
-}
 };
 
 // Function to delete a booking
