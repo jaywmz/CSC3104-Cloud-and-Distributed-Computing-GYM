@@ -1,12 +1,12 @@
 /* OccupancyPage.css */
 
 .occupancy-page {
-    max-width: 1400px; /* Increased max width */
+    max-width: 1200px; /* Reduced max width */
     margin: 0 auto;
-    padding: 30px; /* Increased padding for better spacing */
+    padding: 20px; /* Reduced padding for a more compact layout */
     font-family: 'Arial', sans-serif;
     background-color: #f4f4f4;
-    border-radius: 12px; /* Slightly larger border radius */
+    border-radius: 10px; /* Slightly smaller border radius */
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
@@ -14,18 +14,33 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
+    margin-bottom: 15px; /* Reduced margin */
 }
 
 h2 {
-    font-size: 30px; /* Slightly larger font size for heading */
+    font-size: 28px; /* Slightly reduced font size for heading */
     color: #333;
+}
+
+.back-button {
+    background-color: #007bff;
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    font-weight: bold;
+}
+
+.back-button:hover {
+    background-color: #0056b3;
 }
 
 .logout-button {
     background-color: #ff5252;
     color: white;
-    padding: 12px 24px; /* Increased padding for button */
+    padding: 10px 20px; /* Slightly reduced padding */
     border: none;
     border-radius: 6px;
     cursor: pointer;
@@ -41,28 +56,28 @@ h2 {
     color: #888;
     font-size: 18px;
     text-align: center;
-    margin-top: 20px;
+    margin-top: 10px; /* Reduced margin */
 }
 
 .gym-list {
     display: flex;
     flex-wrap: wrap;
-    gap: 25px; /* Increased gap between boxes */
+    gap: 20px; /* Reduced gap between boxes */
     justify-content: space-between;
 }
 
 .gym-box {
     background-color: white;
-    padding: 25px; /* Increased padding inside each gym box */
-    border-radius: 12px; /* Larger border radius for softer edges */
+    padding: 20px; /* Reduced padding */
+    border-radius: 10px; /* Slightly smaller border radius */
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    width: 40%; /* Increased width to make gym boxes larger */
-    min-width: 350px; /* Larger minimum width */
+    width: 45%; /* Slightly smaller width */
+    min-width: 300px; /* Reduced minimum width */
 }
 
 h3 {
-    font-size: 22px;
-    margin-bottom: 20px; /* Increased margin for better spacing */
+    font-size: 20px; /* Slightly reduced font size */
+    margin-bottom: 15px; /* Reduced margin */
     color: #333;
 }
 
@@ -70,26 +85,26 @@ h3 {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 15px;
-    padding: 10px; /* Increased padding for equipment items */
+    margin-bottom: 12px; /* Reduced margin */
+    padding: 8px; /* Reduced padding */
     background-color: #f9f9f9;
     border-radius: 6px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .equipment-name {
-    font-size: 16px;
+    font-size: 15px; /* Reduced font size */
     font-weight: bold;
     color: #444;
 }
 
 .equipment-status {
     font-size: 14px;
-    padding: 8px 12px; /* Increased padding for status label */
-    border-radius: 6px;
+    padding: 6px 10px; /* Reduced padding */
+    border-radius: 5px;
     color: white;
-    margin-right: 10px;
-    min-width: 80px; /* Maintain minimum width */
+    margin-right: 8px; /* Slightly reduced margin */
+    min-width: 70px; /* Reduced minimum width */
     text-align: center;
 }
 
@@ -99,35 +114,6 @@ h3 {
 
 .equipment-status.available {
     background-color: #4CAF50;
-}
-
-.equipment-buttons {
-    display: flex;
-    gap: 12px; /* Increased gap between buttons */
-}
-
-.use-button, .stop-button {
-    background-color: #2196F3;
-    color: white;
-    border: none;
-    padding: 8px 12px; /* Increased padding for buttons */
-    border-radius: 6px; /* Slightly larger border radius */
-    cursor: pointer;
-    transition: background-color 0.3s;
-    width: 70px; /* Slightly larger button width */
-    text-align: center;
-}
-
-.use-button:hover, .stop-button:hover {
-    background-color: #1976D2;
-}
-
-.stop-button {
-    background-color: #f44336;
-}
-
-.stop-button:hover {
-    background-color: #d32f2f;
 }
 
 .gym-link {
