@@ -21,22 +21,22 @@ const AdminPage = () => {
 
     // Fetch the list of gyms when the component loads
     useEffect(() => {
-        const fetchGyms = async () => {
-            setLoadingGyms(true);
-            try {
-                const response = await fetch('http://localhost:5003/api/get-gyms'); // Replace with your backend route
-                const data = await response.json();
-                setGyms(data); // Set the gyms in state
-            } catch (error) {
-                setError('Error fetching gyms.');
-                console.error('Error fetching gyms:', error);
-            } finally {
-                setLoadingGyms(false);
-            }
-        };
-
         fetchGyms();
     }, []); // Empty dependency array ensures this runs only once when the component mounts
+
+    const fetchGyms = async () => {
+        setLoadingGyms(true);
+        try {
+            const response = await fetch('http://localhost:5003/api/get-gyms'); // Replace with your backend route
+            const data = await response.json();
+            setGyms(data); // Set the gyms in state
+        } catch (error) {
+            setError('Error fetching gyms.');
+            console.error('Error fetching gyms:', error);
+        } finally {
+            setLoadingGyms(false);
+        }
+    };
 
     // Fetch all bookings when the component loads
     useEffect(() => {
@@ -76,11 +76,76 @@ const AdminPage = () => {
                 alert('Gym created successfully!');
                 setGymName('');
                 setMaxCap('');
+                fetchGyms(); // Refresh gyms list after creation
             } else {
                 alert('Failed to create gym');
             }
         } catch (error) {
             console.error('Error creating gym:', error);
+        }
+    };
+
+    // Handle gym editing
+    const handleEditGym = async (gymID) => {
+        const gymToEdit = gyms.find(gym => gym.gymID === gymID);
+        if (!gymToEdit) {
+            alert('Gym not found');
+            return;
+        }
+
+        setGymName(gymToEdit.gymName);
+        setMaxCap(gymToEdit.maxCap);
+        setGymID(gymToEdit.gymID);
+        setActiveTab('editGym');
+    };
+
+    const handleUpdateGym = async () => {
+        if (!gymName || !maxCap || !gymID) {
+            alert('Please fill in all fields for the gym');
+            return;
+        }
+
+        try {
+            const response = await fetch(`http://localhost:5003/api/edit-gym/${gymID}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ gymName, maxCap }),
+            });
+
+            if (response.ok) {
+                alert('Gym updated successfully!');
+                setGymName('');
+                setMaxCap('');
+                fetchGyms(); // Refresh gyms list after update
+                setActiveTab('createGym');
+            } else {
+                alert('Failed to update gym');
+            }
+        } catch (error) {
+            console.error('Error updating gym:', error);
+        }
+    };
+
+    // Handle gym deletion
+    const handleDeleteGym = async (gymID) => {
+        const confirmDelete = window.confirm("Are you sure you want to delete this gym?");
+        if (!confirmDelete) return;
+
+        try {
+            const response = await fetch(`http://localhost:5003/api/delete-gym/${gymID}`, {
+                method: 'DELETE',
+            });
+
+            if (response.ok) {
+                alert('Gym deleted successfully!');
+                fetchGyms(); // Refresh gyms list after deletion
+            } else {
+                alert('Failed to delete gym');
+            }
+        } catch (error) {
+            console.error('Error deleting gym:', error);
         }
     };
 
@@ -127,10 +192,10 @@ const AdminPage = () => {
 
     // Render tab content based on the active tab
     const renderTabContent = () => {
-        if (activeTab === 'createGym') {
+        if (activeTab === 'createGym' || activeTab === 'editGym') {
             return (
                 <div className="form-box">
-                    <h3>Create Gym</h3>
+                    <h3>{activeTab === 'editGym' ? 'Edit Gym' : 'Create Gym'}</h3>
                     <input 
                         type="text" 
                         placeholder="Gym Name" 
@@ -149,7 +214,9 @@ const AdminPage = () => {
                         <option value="50">50</option>
                         <option value="100">100</option>
                     </select>
-                    <button className="create-button" onClick={handleCreateGym}>Create Gym</button>
+                    <button className="create-button" onClick={activeTab === 'editGym' ? handleUpdateGym : handleCreateGym}>
+                        {activeTab === 'editGym' ? 'Update Gym' : 'Create Gym'}
+                    </button>
                 </div>
             );
         } else if (activeTab === 'createEquipment') {
@@ -222,6 +289,21 @@ const AdminPage = () => {
                     )}
                 </div>
             );
+        } else if (activeTab === 'manageGyms') {
+            return (
+                <div className="form-box">
+                    <h3>Manage Gyms</h3>
+                    <ul className="gym-list">
+                        {gyms.map((gym) => (
+                            <li key={gym.gymID}>
+                                {gym.gymName} (Max Capacity: {gym.maxCap})
+                                <button className="edit-button" onClick={() => handleEditGym(gym.gymID)}>Edit</button>
+                                <button className="delete-button" onClick={() => handleDeleteGym(gym.gymID)}>Delete</button>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            );
         }
     };
 
@@ -253,6 +335,12 @@ const AdminPage = () => {
                     onClick={() => setActiveTab('createEquipment')}
                 >
                     Create Equipment
+                </button>
+                <button
+                    className={activeTab === 'manageGyms' ? 'active' : ''}
+                    onClick={() => setActiveTab('manageGyms')}
+                >
+                    Manage Gyms
                 </button>
                 <button
                     className={activeTab === 'viewBookings' ? 'active' : ''}
