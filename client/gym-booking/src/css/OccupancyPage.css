@@ -132,9 +132,12 @@ h3 {
 
 .gym-link {
     color: #007bff; /* Bootstrap link color */
-    text-decoration: none;
 }
 
 .gym-link:hover {
     text-decoration: underline;
+}
+
+.title {
+    align-content: center;
 }

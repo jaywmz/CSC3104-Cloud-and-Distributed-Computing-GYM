@@ -46,8 +46,10 @@ const OccupancyPage = () => {
                         {/* Link the gym name to its specific page */}
                         <h3>
                             <Link to={`/gym/${gym.gymID}`} className="gym-link">
-                                {gym.gymName} ({gym.occupants}/{gym.maxCap})
+                                {gym.gymName}
                             </Link>
+                            <br />
+                            <p>{gym.occupants} / {gym.maxCap} occupants right now</p>
                         </h3>
                         <ul>
                             {gym.equipment.map((item) => (
@@ -68,7 +70,7 @@ const OccupancyPage = () => {
     return (
         <div className="occupancy-page">
             <header className="header">
-                <h2>Gym Occupancy</h2>
+                <h2 class="title">Real-time Gym Occupancy</h2>
                 <div className="button-group">
                     {userRole === 'admin' && (
                         <Link to="/admin" className="admin-link">Go to Admin Dashboard</Link>

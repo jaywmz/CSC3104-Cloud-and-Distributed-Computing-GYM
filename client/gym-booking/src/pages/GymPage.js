@@ -69,14 +69,16 @@ const GymPage = () => {
     };
 
     return (
-        <div id={"gym"}>
+        <div id="gym">
             {/* Logout Button */}
-            <button onClick={handleBack} id={"back-button"}>Back</button>
+            <button onClick={handleBack} id="back-button">Back</button>
 
-            <h2>{gym.gymName}</h2>  
+            <h1 id="gymName">{gym.gymName}</h1>  
 
-            <button onClick={() => handleUpdate(1, gym.gymID)}>Check in</button>
-            <button onClick={() => handleUpdate(-1, gym.gymID)}>Check out</button>
+            <div id="buttonGroup">
+                <button onClick={() => handleUpdate(1, gym.gymID)} id="checkInBtn">Check in</button>
+                <button onClick={() => handleUpdate(-1, gym.gymID)} id="checkOutBtn">Check out</button>
+            </div>
 
             <p id={"message"}></p>
         </div>

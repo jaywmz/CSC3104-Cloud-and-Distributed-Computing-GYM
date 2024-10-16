@@ -2,9 +2,64 @@
     align-items: center;
     max-width: 500px;
     margin: auto;
-    padding-top: 100px;
+    margin-top: 100px;
+    background-color: whitesmoke;
+    padding: 40px 50px;
+    border-radius: 50px;
+    font-family: 'Arial', sans-serif;
 }
 
 #back-button {
-    float: right;
+    padding: 5px 10px;
+    background-color: lightgray;
+    border-radius: 10px;
+    border: 0px;
+    transition-duration: 0.4s;
+}
+
+#back-button:hover {
+    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.24),0 17px 50px 0 rgba(0,0,0,0.19);
+}
+
+#gymName {
+    margin-top: 50px;
+    text-align: center;
+    font-weight: bold;
+}
+
+#buttonGroup {
+    margin-top: 50px;
+    text-align: center;
+}
+
+#checkInBtn {
+    background-color: lightgreen;
+    padding: 10px;
+    margin-right: 10px;
+    border-radius: 10px;
+    border: 0px;
+    transition-duration: 0.4s;
+}
+
+#checkInBtn:hover {
+    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.24),0 17px 50px 0 rgba(0,0,0,0.19);
+}
+
+#checkOutBtn {
+    background-color: lightcoral;
+    padding: 10px;
+    margin-left: 10px;
+    border-radius: 10px;
+    border: 0px;
+    transition-duration: 0.4s;
+}
+
+#checkOutBtn:hover {
+    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.24),0 17px 50px 0 rgba(0,0,0,0.19);
+}
+
+#message {
+    margin-top: 50px;
+    text-align: center;
+    color: red;
 }
