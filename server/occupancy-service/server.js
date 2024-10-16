@@ -305,6 +305,8 @@ app.post('/api/create-gym', async (req, res) => {
     }
 });
 
+
+
 // Create Equipment
 app.post('/api/create-equipment', async (req, res) => {
     const { equipmentName, equipmentType, gymID, purpose } = req.body;
@@ -346,6 +348,98 @@ app.get('/api/get-gyms', async (req, res) => {
     });
 });
 
+// Edit Gym via gRPC
+async function editGym(call, callback) {
+    const { gymID, gymName, maxCap } = call.request;
+
+    try {
+        const updateResult = await gymsCollection.updateOne(
+            { gymID: gymID },
+            { $set: { gymName: gymName, maxCap: parseInt(maxCap) } }
+        );
+
+        if (updateResult.modifiedCount === 0) {
+            return callback(null, { message: 'Gym not found' });
+        }
+
+        console.log(`Gym updated with gymID: ${gymID}`);
+        callback(null, { message: 'Gym updated successfully' });
+    } catch (err) {
+        callback({
+            code: grpc.status.INTERNAL,
+            details: 'Error updating gym',
+        });
+    }
+}
+
+// Delete Gym via gRPC
+async function deleteGym(call, callback) {
+    const { gymID } = call.request;
+
+    try {
+        const deleteResult = await gymsCollection.deleteOne({ gymID: gymID });
+
+        if (deleteResult.deletedCount === 0) {
+            return callback(null, { message: 'Gym not found' });
+        }
+
+        console.log(`Gym deleted with gymID: ${gymID}`);
+        callback(null, { message: 'Gym deleted successfully' });
+    } catch (err) {
+        callback({
+            code: grpc.status.INTERNAL,
+            details: 'Error deleting gym',
+        });
+    }
+}
+
+// Edit Gym
+app.put('/api/edit-gym/:gymID', async (req, res) => {
+    const gymID = parseInt(req.params.gymID);
+    const { gymName, maxCap } = req.body;
+
+    if (!gymName || !maxCap) {
+        return res.status(400).json({ message: 'All fields are required' });
+    }
+
+    try {
+        const updateResult = await gymsCollection.updateOne(
+            { gymID: gymID },
+            { $set: { gymName: gymName, maxCap: parseInt(maxCap) } }
+        );
+
+        if (updateResult.modifiedCount === 0) {
+            return res.status(404).json({ message: 'Gym not found' });
+        }
+
+        console.log(`Gym updated with gymID: ${gymID}`);
+        return res.sendStatus(200);
+    } catch (err) {
+        console.error(`Error updating gym: ${err}`);
+        return res.status(500).json({ message: 'Server error. Failed to update gym' });
+    }
+});
+
+// Delete Gym
+app.delete('/api/delete-gym/:gymID', async (req, res) => {
+    const gymID = parseInt(req.params.gymID);
+
+    try {
+        const deleteResult = await gymsCollection.deleteOne({ gymID: gymID });
+
+        if (deleteResult.deletedCount === 0) {
+            return res.status(404).json({ message: 'Gym not found' });
+        }
+
+        console.log(`Gym deleted with gymID: ${gymID}`);
+        return res.sendStatus(200);
+    } catch (err) {
+        console.error(`Error deleting gym: ${err}`);
+        return res.status(500).json({ message: 'Server error. Failed to delete gym' });
+    }
+});
+
+
 // Get all gyms (gRPC)
 async function getGyms (call, callback) {
     try{
@@ -368,6 +462,8 @@ const grpcServer = new grpc.Server();
 grpcServer.addService(occupancyProto.service, { 
   GetGyms : getGyms,
   GetAllBookings: getAllBookings,  //fetch all bookings for admin overview to see all booking status
+  EditGym: editGym,  // Add edit gym handler
+  DeleteGym: deleteGym,  // Add delete gym handler
 });
 grpcServer.bindAsync('0.0.0.0:50053', grpc.ServerCredentials.createInsecure(), () => {
   console.log('gRPC server running at http://0.0.0.0:50053');
