@@ -87,6 +87,9 @@ app.post('/api/bookings', (req, res) => {
       if (error.code === grpc.status.ALREADY_EXISTS) {
         return res.status(409).send({ details: error.details }); // Ensure return to avoid sending multiple responses
       }
+      if (error.code === grpc.status.RESOURCE_EXHAUSTED) {
+        return res.status(429).send({ details: error.details }); // Ensure return
+      }
       console.error('Error creating booking via gRPC:', error);
       return res.status(500).send('Failed to create booking'); // Ensure return
     }
@@ -255,7 +258,17 @@ async function createBooking(call, callback) {
 
     const db = await connectDB();
     const bookingsCollection = db.collection('bookings');
+    const bookingsQuotaCollection = db.collection('bookingsQuota');
     const { date, slot, gymId } = call.request;
+
+    // Check if slot quota has exceeded 10
+    const checkQuota = await bookingsQuotaCollection.findOne({ gymId: parseInt(gymId), date: date });
+    if (checkQuota && checkQuota[slot] >= 10) {
+      return callback({
+        code: grpc.status.RESOURCE_EXHAUSTED,
+        details: 'Slot quota exceeded. Please choose another slot.',
+      });
+    }
 
     // Check for duplicate booking (same user, gymId, and slot)
     const duplicateBooking = await bookingsCollection.findOne({
@@ -278,6 +291,20 @@ async function createBooking(call, callback) {
     booking.id = Math.floor(Math.random() * 1000); // Generate a random ID
     booking.gymId = parseInt(booking.gymId); // Convert gymId string to integer
     bookingsCollection.insertOne(booking);
+
+    // Check if slot quota exists by date and gymId
+    const quota = await bookingsQuotaCollection.findOne({ gymId: booking.gymId, date: booking.date});
+    // if exists, check if slot exists in this date and gymId
+    if (quota) {
+      if (quota[booking.slot]) {
+        await bookingsQuotaCollection.updateOne({ gymId: booking.gymId, date: booking.date }, { $inc: { [booking.slot]: 1 } });
+      } else {
+        await bookingsQuotaCollection.updateOne({ gymId: booking.gymId, date: booking.date }, { $set: { [booking.slot]: 1 } });
+      }
+    } else {
+      await bookingsQuotaCollection.insertOne({ gymId: booking.gymId, date: booking.date, [booking.slot]: 1 });
+    };
+
     callback(null, booking);
   } catch (error) {
     console.error('Error creating booking:', error);
@@ -299,6 +326,7 @@ async function deleteBooking(call, callback) {
 
     const db = await connectDB();
     const bookingsCollection = db.collection('bookings');
+    const bookingsQuotaCollection = db.collection('bookingsQuota');
     const booking = await bookingsCollection.findOne({ id: call.request.id });
 
     if (booking.user !== user) {
@@ -310,7 +338,12 @@ async function deleteBooking(call, callback) {
     }
 
     if (booking) {
+      // Delete the booking
       await bookingsCollection.deleteOne({ id: call.request.id });
+
+      // Remove booking from slot quota
+      await bookingsQuotaCollection.updateOne({ gymId: booking.gymId, date: booking.date, [booking.slot]: { $exists: true } }, { $inc: { [booking.slot]: -1 } });
+
       callback(null, {});
     } else {
       callback({
@@ -329,6 +362,8 @@ async function deleteBooking(call, callback) {
 // Update a booking
 async function updateBooking(call, callback) {
   try {
+    // TODO: check if booking already exists when updating a different booking
+
     const token = call.metadata.get('authorization')[0]; // Get token from metadata
 
     // Decode the token to get the user
@@ -336,7 +371,8 @@ async function updateBooking(call, callback) {
 
     const db = await connectDB();
     const bookingsCollection = db.collection('bookings');
-    const { id, slot, gymId } = call.request;
+    const bookingsQuotaCollection = db.collection('bookingsQuota');
+    const { id, date, slot, gymId } = call.request;
 
     // Find the booking by id
     const booking = await bookingsCollection.findOne({ id: parseInt(id) });
@@ -360,11 +396,28 @@ async function updateBooking(call, callback) {
     // Update the booking details
     const updatedBooking = {
       ...booking,
+      date: date || booking.date, // Update date if provided
       slot: slot || booking.slot, // Update slot if provided
       gymId: gymId ? parseInt(gymId) : booking.gymId, // Update gymId if provided
     };
 
     await bookingsCollection.updateOne({ id: parseInt(id) }, { $set: updatedBooking });
+    // Remove booking from old slot quota
+    await bookingsQuotaCollection.updateOne({ gymId: booking.gymId, date: booking.date }, { $inc: { [booking.slot]: -1 } });
+
+    // Check if new slot quota exists by date and gymId
+    const quota = await bookingsQuotaCollection.findOne({ gymId: updatedBooking.gymId, date: updatedBooking.date });
+    // if exists, check if slot exists in this date and gymId
+    if (quota) {
+      if (quota[updatedBooking.slot]) {
+        await bookingsQuotaCollection.updateOne({ gymId: updatedBooking.gymId, date: updatedBooking.date }, { $inc: { [updatedBooking.slot]: 1 } });
+      } else {
+        await bookingsQuotaCollection.updateOne({ gymId: updatedBooking.gymId, date: updatedBooking.date }, { $set: { [updatedBooking.slot]: 1 } });
+      }
+    } else {
+      await bookingsQuotaCollection.insertOne({ gymId: updatedBooking.gymId, date: updatedBooking.date, [updatedBooking.slot]: 1 });
+    };
+
     callback(null, updatedBooking); // Respond with the updated booking
   } catch (error) {
     console.error('Error updating booking:', error);
@@ -382,9 +435,9 @@ app.put('/api/bookings/update/:id', (req, res) => {
   token.add('Authorization', `${req.header('Authorization').split(' ')[1]}`);
 
   const { id } = req.params;
-  const { slot, gymId } = req.body;
+  const { date, slot, gymId } = req.body;
 
-  bookingClient.UpdateBooking({ id, slot, gymId }, token, (error, booking) => {
+  bookingClient.UpdateBooking({ id, date, slot, gymId }, token, (error, booking) => {
     if (error) {
       console.error('Error updating booking via gRPC:', error);
       return res.status(500).send('Failed to update booking');

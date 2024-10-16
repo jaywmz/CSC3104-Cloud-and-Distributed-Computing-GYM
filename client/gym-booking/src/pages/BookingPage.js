@@ -94,7 +94,7 @@ const BookingPage = () => {
 
   const handleEditBooking = (booking) => {
     setEditingBooking(booking);
-    setNewBooking({ slot: booking.slot, gymId: booking.gymId });
+    setNewBooking({ date: booking.date, slot: booking.slot, gymId: booking.gymId });
   };
 
   const handleUpdateBooking = async (e) => {
@@ -105,7 +105,7 @@ const BookingPage = () => {
       setMessage('Booking updated successfully!');
       setEditingBooking(null); // Exit edit mode
       await fetchUserBookings(); // Refresh bookings after update
-      setNewBooking({ slot: '', gymId: '' }); // Reset the form
+      setNewBooking({ date: '', slot: '', gymId: '' }); // Reset the form
     } catch (error) {
       setMessage('Failed to update booking.');
     } finally {
@@ -173,7 +173,7 @@ const BookingPage = () => {
       setMessage('Booking created successfully!');
       setNewBooking({date: '', slot: '', gymId: '' }); // Reset the form
     } catch (error) {
-      setMessage('Failed to create booking.');
+      setMessage(error.message);
     } finally {
       setLoading(false);
       setIsConfirmModalOpen(false);
