@@ -1,3 +1,4 @@
+/* Admin page container */
 .admin-page-container {
     max-width: 1000px;
     margin: 20px auto;
@@ -7,38 +8,38 @@
     border-radius: 15px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     transition: box-shadow 0.3s ease-in-out;
-    position: relative; /* Ensure relative positioning to allow absolute positioning of children */
+    position: relative;
 }
 
 .admin-page-container:hover {
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
 }
 
+/* Header */
 .admin-page-container .header {
-    position: relative; /* Needed to position elements inside */
+    position: relative;
     display: flex;
     align-items: center;
-    justify-content: center; /* Centers the title */
+    justify-content: center;
     margin-bottom: 30px;
 }
 
-/* Adjust the title to center it */
 .admin-page-container h2 {
     font-size: 32px;
     font-weight: 600;
     color: #333;
     text-transform: uppercase;
     margin: 0;
-    position: absolute; /* Absolutely position the title within the header */
+    position: absolute;
     left: 50%;
-    transform: translateX(-50%); /* Perfectly center the title */
+    transform: translateX(-50%);
 }
 
-/* Back button styles scoped to admin page */
+/* Back button */
 .admin-page-container .back-button {
-    position: absolute; /* Absolute positioning to pin it to the corner */
-    top: 10px; /* Align it vertically within the container */
-    left: 30px; /* Align it horizontally within the container */
+    position: absolute;
+    top: 10px;
+    left: 30px;
     background-color: #007bff;
     color: white;
     padding: 10px 20px;
@@ -54,10 +55,10 @@
     transform: scale(1.05);
 }
 
-/* Logout button styling scoped to admin page */
+/* Logout button */
 .admin-page-container .logout-button {
-    position: absolute; /* Absolutely position this to the top-right */
-    top: -25px; /* Same vertical alignment as the back button */
+    position: absolute;
+    top: -25px;
     right: 30px;
     background-color: #ff4c4c;
     color: white;
@@ -74,7 +75,7 @@
     transform: scale(1.05);
 }
 
-/* Tab navigation styles scoped to admin page */
+/* Tab navigation */
 .admin-page-container .tabs {
     display: flex;
     justify-content: space-around;
@@ -97,7 +98,7 @@
 .admin-page-container .tabs button.active {
     background-color: #4CAF50;
     color: white;
-    border-bottom: 2px solid #4CAF50; /* Adds highlight to active tab */
+    border-bottom: 2px solid #4CAF50;
 }
 
 .admin-page-container .tabs button:hover {
@@ -105,7 +106,7 @@
     color: white;
 }
 
-/* Tab content styles scoped to admin page */
+/* Tab content */
 .admin-page-container .tab-content {
     background-color: #f9f9f9;
     padding: 25px;
@@ -152,19 +153,70 @@
     transform: scale(1.05);
 }
 
-.admin-page-container .admin-link {
-    margin-left: 20px;
-    background-color: #4CAF50;
-    color: white;
-    padding: 12px 20px;
-    border-radius: 6px;
-    text-decoration: none;
+/* Gym list wrapper */
+.gym-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: space-between;
+}
+
+/* Gym item */
+.gym-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start; /* Align items to the top for vertical parallel buttons */
+    background-color: #f9f9f9;
+    padding: 10px;
+    border-radius: 8px;
+    width: 48%; /* Set width for two columns */
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Gym name */
+.gym-name {
+    font-size: 16px;
     font-weight: bold;
+    flex: 1;
+    color: #333;
+}
+
+/* Button group */
+.button-group {
+    display: flex;
+    flex-direction: column; /* Align buttons vertically */
+    gap: 10px; /* Space between buttons */
+}
+
+/* Common styles for buttons */
+.action-button {
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: bold;
+    border: none;
+    border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.3s, transform 0.2s;
 }
 
-.admin-page-container .admin-link:hover {
-    background-color: #45a049;
+/* Edit button */
+.edit-button {
+    background-color: #007bff;
+    color: white;
+}
+
+.edit-button:hover {
+    background-color: #0056b3;
+    transform: scale(1.05);
+}
+
+/* Delete button */
+.delete-button {
+    background-color: #e74c3c;
+    color: white;
+}
+
+.delete-button:hover {
+    background-color: #c0392b;
     transform: scale(1.05);
 }
