@@ -138,13 +138,17 @@ const AdminPage = () => {
                         onChange={(e) => setGymName(e.target.value)} 
                         className="form-input"
                     />
-                    <input 
-                        type="number" 
-                        placeholder="Max Capacity" 
-                        value={maxCap} 
-                        onChange={(e) => setMaxCap(e.target.value)} 
+                    <select
+                        value={maxCap}
+                        onChange={(e) => setMaxCap(e.target.value)}
                         className="form-input"
-                    />
+                    >
+                        <option value="">Select Max Capacity</option>
+                        <option value="20">20</option>
+                        <option value="30">30</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
                     <button className="create-button" onClick={handleCreateGym}>Create Gym</button>
                 </div>
             );
@@ -188,13 +192,16 @@ const AdminPage = () => {
                             ))}
                         </select>
                     )}
-                    <input 
-                        type="text" 
-                        placeholder="Purpose" 
-                        value={purpose} 
-                        onChange={(e) => setPurpose(e.target.value)} 
+                    <select
+                        value={purpose}
+                        onChange={(e) => setPurpose(e.target.value)}
                         className="form-input"
-                    />
+                    >
+                        <option value="">Select Purpose</option>
+                        <option value="Cardio">Cardio</option>
+                        <option value="Strength">Strength</option>
+                        <option value="Flexibility">Flexibility</option>
+                    </select>
                     <button className="create-button" onClick={handleCreateEquipment}>Create Equipment</button>
                 </div>
             );
