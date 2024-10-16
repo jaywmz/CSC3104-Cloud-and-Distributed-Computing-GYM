@@ -1,0 +1,10 @@
+#gym {
+    align-items: center;
+    max-width: 500px;
+    margin: auto;
+    padding-top: 100px;
+}
+
+#back-button {
+    float: right;
+}

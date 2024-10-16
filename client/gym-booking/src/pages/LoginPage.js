@@ -27,7 +27,7 @@ const LoginPage = () => {
       const role = decodedToken.role;
       localStorage.setItem('role', role);
       if (decodedToken.role === 'admin') {
-        navigate('/occupancy-page');
+        navigate('/occupancy');
       } else {
         navigate('/bookings');
       }

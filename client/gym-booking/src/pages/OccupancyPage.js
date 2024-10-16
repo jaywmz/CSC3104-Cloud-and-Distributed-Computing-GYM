@@ -31,7 +31,7 @@ const OccupancyPage = () => {
 
     const handleLogout = () => {
         localStorage.removeItem('token');
-        window.location.href = '/login';
+        window.location.href = '/';
     };
 
     function GymList() {
@@ -45,7 +45,7 @@ const OccupancyPage = () => {
                     <div key={index} className="gym-box">
                         {/* Link the gym name to its specific page */}
                         <h3>
-                            <Link to={`/gym-page/${gym.gymID}`} className="gym-link">
+                            <Link to={`/gym/${gym.gymID}`} className="gym-link">
                                 {gym.gymName} ({gym.occupants}/{gym.maxCap})
                             </Link>
                         </h3>

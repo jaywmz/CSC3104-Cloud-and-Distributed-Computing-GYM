@@ -30,7 +30,7 @@ const App = () => {
         />
         
         <Route 
-          path="/occupancy-page" 
+          path="/occupancy" 
           element={
             <ProtectedRoute allowedRoles={['user', 'admin']}> {/* Allow all users for now*/}
               <OccupancyPage />
@@ -39,7 +39,7 @@ const App = () => {
         />
 
         <Route 
-          path="/gym-page/:id" 
+          path="/gym/:id" 
           element={
             <ProtectedRoute allowedRoles={['user', 'admin']}> {/* Allow all users for now*/}
               <GymPage />
