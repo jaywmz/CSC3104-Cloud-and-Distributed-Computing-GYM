@@ -2,7 +2,9 @@ syntax = "proto3";
 
 service OccupancyService {
     rpc GetGyms(voidNoParam) returns (gymList);
-    rpc GetAllBookings(voidNoParam) returns (bookingList); 
+    rpc GetAllBookings(voidNoParam) returns (bookingList);
+    rpc EditGym(EditGymRequest) returns (GymResponse);  // Edit gym RPC
+    rpc DeleteGym(DeleteGymRequest) returns (GymResponse);  // Delete gym RPC 
 }
 
 message voidNoParam {}
@@ -26,4 +28,19 @@ message booking {
 
 message bookingList {
     repeated booking bookings = 1;
+}
+
+// Messages for edit and delete operations
+message EditGymRequest {
+    int32 gymID = 1;
+    string gymName = 2;
+    int32 maxCap = 3;
+}
+
+message DeleteGymRequest {
+    int32 gymID = 1;
+}
+
+message GymResponse {
+    string message = 1;
 }

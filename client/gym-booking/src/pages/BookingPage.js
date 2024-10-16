@@ -2,37 +2,31 @@ import React, { useEffect, useState } from 'react';
 import { createBooking, getUserBookings, getGyms, updateBooking, deleteBooking } from '../services/bookingService';
 import 'bootstrap/dist/css/bootstrap.min.css'; // Import Bootstrap
 import '../css/BookingPage.css'; // Custom CSS file for extra styles
-import {jwtDecode} from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode';
 
 const BookingPage = () => {
   const [userBookings, setUserBookings] = useState([]);
-  const [newBooking, setNewBooking] = useState({ slot: '', gymId: '' });
+  const [newBooking, setNewBooking] = useState({ date: '', slot: '', gymId: '' });
   const [editingBooking, setEditingBooking] = useState(null); // For edit mode
   const [gyms, setGyms] = useState([]); // Store gyms in state
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false); // Loading state
-  const [username, setUsername] = useState(''); 
+  const [username, setUsername] = useState('');
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [bookingDetails, setBookingDetails] = useState({});
   const [role, setRole] = useState('');
+  const [dateOptions, setDateOptions] = useState([]);
 
   // Define available timeslots
   const timeslots = [
-    '06:00 AM - 07:00 AM',
-    '07:00 AM - 08:00 AM',
-    '08:00 AM - 09:00 AM',
-    '09:00 AM - 10:00 AM',
-    '10:00 AM - 11:00 AM',
-    '11:00 AM - 12:00 PM',
-    '12:00 PM - 01:00 PM',
-    '01:00 PM - 02:00 PM',
-    '02:00 PM - 03:00 PM',
-    '03:00 PM - 04:00 PM',
-    '04:00 PM - 05:00 PM',
-    '05:00 PM - 06:00 PM',
-    '06:00 PM - 07:00 PM',
-    '07:00 PM - 08:00 PM',
-    '08:00 PM - 09:00 PM',
+    '06:00 AM - 08:00 AM',
+    '08:00 AM - 10:00 AM',
+    '10:00 AM - 12:00 PM',
+    '12:00 PM - 02:00 PM',
+    '02:00 PM - 04:00 PM',
+    '04:00 PM - 06:00 PM',
+    '06:00 PM - 08:00 PM',
+    '08:00 PM - 10:00 PM',
   ];
 
   useEffect(() => {
@@ -43,10 +37,22 @@ const BookingPage = () => {
       setUsername(decodedToken.username); // Set the username from the token
       setRole(decodedToken.role);
 
-    fetchUserBookings();
-    fetchGyms();
-  }
+      fetchUserBookings();
+      fetchGyms();
+      generateDateOptions();
+    }
   }, []);
+
+  const generateDateOptions = () => {
+    const options = [];
+    const today = new Date();
+    for (let i = 1; i <= 7; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() + i);
+      options.push(date.toISOString().split('T')[0]);
+    }
+    setDateOptions(options);
+  };
 
   const fetchGyms = async () => {
     setLoading(true);
@@ -88,7 +94,7 @@ const BookingPage = () => {
 
   const handleEditBooking = (booking) => {
     setEditingBooking(booking);
-    setNewBooking({ slot: booking.slot, gymId: booking.gymId });
+    setNewBooking({ date: booking.date, slot: booking.slot, gymId: booking.gymId });
   };
 
   const handleUpdateBooking = async (e) => {
@@ -99,7 +105,7 @@ const BookingPage = () => {
       setMessage('Booking updated successfully!');
       setEditingBooking(null); // Exit edit mode
       await fetchUserBookings(); // Refresh bookings after update
-      setNewBooking({ slot: '', gymId: '' }); // Reset the form
+      setNewBooking({ date: '', slot: '', gymId: '' }); // Reset the form
     } catch (error) {
       setMessage('Failed to update booking.');
     } finally {
@@ -110,7 +116,7 @@ const BookingPage = () => {
   const handleCreateBooking = (e) => {
     e.preventDefault();
     const gymName = gyms.find((g) => g.gymID === parseInt(newBooking.gymId, 10)).gymName;
-    const details = { gymName: gymName, time: newBooking.slot };
+    const details = { date: newBooking.date, gymName: gymName, time: newBooking.slot };
     openModal(details);
   };
 
@@ -127,10 +133,10 @@ const BookingPage = () => {
 
   const ConfirmModal = ({ isOpen, details, onClose, onConfirm }) => {
     if (!isOpen) return null;
-  
+
     return (
       <>
-      <div className="modal-backdrop"></div>
+        <div className="modal-backdrop"></div>
         <div className="modal show d-block" tabIndex="-1">
           <div className="modal-dialog">
             <div className="modal-content">
@@ -139,6 +145,7 @@ const BookingPage = () => {
                 <button type="button" className="btn-close" onClick={onClose}></button>
               </div>
               <div className="modal-body">
+                <p>Date: {details.date}</p>
                 <p>Gym: {details.gymName}</p>
                 <p>Time: {details.time}</p>
               </div>
@@ -164,9 +171,9 @@ const BookingPage = () => {
       await createBooking(newBooking);
       await fetchUserBookings(); // Refresh the bookings list after submission
       setMessage('Booking created successfully!');
-      setNewBooking({ slot: '', gymId: '' }); // Reset the form
+      setNewBooking({date: '', slot: '', gymId: '' }); // Reset the form
     } catch (error) {
-      setMessage('Failed to create booking.');
+      setMessage(error.message);
     } finally {
       setLoading(false);
       setIsConfirmModalOpen(false);
@@ -191,8 +198,8 @@ const BookingPage = () => {
               <li className="nav-item">
                 {/* Display the username here */}
                 <span className="navbar-text me-3">Logged in as: <strong>{username}</strong></span>
-                </li>
-              <li className="nav-item"> 
+              </li>
+              <li className="nav-item">
                 <button onClick={handleLogout} className="btn btn-gradient btn-sm">Logout</button>
               </li>
             </ul>
@@ -224,6 +231,21 @@ const BookingPage = () => {
         <div className="card-body p-2">
           <form onSubmit={editingBooking ? handleUpdateBooking : handleCreateBooking}>
             <div className="mb-2">
+              <label htmlFor="date" className="form-label small">Date</label>
+              <select
+                name="date"
+                className="form-control form-control-sm"
+                value={newBooking.date}
+                onChange={(e) => setNewBooking({ ...newBooking, date: e.target.value })}
+                required
+              >
+                <option value="">Select a date</option>
+                {dateOptions.map((date) => (
+                  <option key={date} value={date}>
+                    {date}
+                  </option>
+                ))}
+              </select>
               <label htmlFor="slot" className="form-label small">Time Slot</label>
               <select
                 name="slot"
@@ -279,6 +301,7 @@ const BookingPage = () => {
             {userBookings.map((booking) => (
               <li key={booking.id} className="list-group-item small p-2 d-flex justify-content-between align-items-center">
                 <div>
+                  <strong>Date: </strong> {booking.date} <br />
                   <strong>Time Slot:</strong> {booking.slot} <br />
                   <strong>Gym:</strong> {getGymNameById(booking.gymId)}
                 </div>

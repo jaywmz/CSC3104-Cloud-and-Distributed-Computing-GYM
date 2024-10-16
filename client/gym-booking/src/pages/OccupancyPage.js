@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import '../css/OccupancyPage.css';
 import { getOccupancy } from '../services/occupancyService';
 
 const OccupancyPage = () => {
     const [occupancy, setOccupancy] = useState([]);
     const [userRole, setUserRole] = useState(null);
+    const navigate = useNavigate();
 
     useEffect(() => {
         fetchOccupancy();
@@ -34,33 +35,39 @@ const OccupancyPage = () => {
         window.location.href = '/';
     };
 
+    // Back button to navigate to /user
+    const handleBack = () => {
+        navigate('/user');
+    };
+
     function GymList() {
         if (!occupancy || occupancy.length === 0) {
             return <p className="no-gyms">No gyms available.</p>;
         }
     
         return (
-            <div className="gym-list">
+            <div className="gym-list row">
                 {occupancy.map((gym, index) => (
-                    <div key={index} className="gym-box">
-                        {/* Link the gym name to its specific page */}
-                        <h3>
-                            <Link to={`/gym/${gym.gymID}`} className="gym-link">
-                                {gym.gymName}
-                            </Link>
-                            <br />
-                            <p>{gym.occupants} / {gym.maxCap} occupants right now</p>
-                        </h3>
-                        <ul>
-                            {gym.equipment.map((item) => (
-                                <li key={item.itemID} className="equipment-item">
-                                    <span className="equipment-name">{item.name}</span>
-                                    <span className={`equipment-status ${item.inUse ? 'in-use' : 'available'}`}>
-                                        {item.inUse ? "In Use" : "Available"}
-                                    </span>
-                                </li>
-                            ))}
-                        </ul>
+                    <div key={index} className="gym-box col-md-6 mb-4">
+                        <div className="card shadow-lg h-100">
+                            <div className="card-body">
+                                <h3 className="card-title">
+                                    <Link to={`/gym/${gym.gymID}`} className="gym-link">
+                                        {gym.gymName} ({gym.occupants}/{gym.maxCap})
+                                    </Link>
+                                </h3>
+                                <ul className="list-group">
+                                    {gym.equipment.map((item) => (
+                                        <li key={item.itemID} className="list-group-item d-flex justify-content-between">
+                                            <span>{item.name}</span>
+                                            <span className={`badge ${item.inUse ? 'bg-danger' : 'bg-success'}`}>
+                                                {item.inUse ? "In Use" : "Available"}
+                                            </span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        </div>
                     </div>
                 ))}
             </div>
@@ -70,15 +77,16 @@ const OccupancyPage = () => {
     return (
         <div className="occupancy-page">
             <header className="header">
-                <h2 class="title">Real-time Gym Occupancy</h2>
+                <h2>Gym Occupancy</h2>
                 <div className="button-group">
                     {userRole === 'admin' && (
-                        <Link to="/admin" className="admin-link">Go to Admin Dashboard</Link>
+                        <Link to="/admin" className="btn btn-primary me-2">Go to Admin Dashboard</Link>
                     )}
-                    <button onClick={handleLogout} className="logout-button">Logout</button>
+                    <button onClick={handleLogout} className="btn btn-danger">Logout</button>
                 </div>
             </header>
 
+            {/* Gym List */}
             <GymList />
         </div>
     );
