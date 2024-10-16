@@ -37,3 +37,16 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   }
   
+  .modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black */
+    z-index: 1040; /* Below the modal but above other content */
+  }
+  
+  .modal.show {
+    z-index: 1050; /* Above the backdrop */
+  }
