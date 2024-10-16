@@ -27,8 +27,9 @@ message gymId {
 message booking {
     int32 id = 1;
     string user = 2;
-    string slot = 3;
-    int32 gymId = 4;
+    string date = 3;
+    string slot = 4;
+    int32 gymId = 5;
 }
 
 message bookingList {

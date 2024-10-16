@@ -80,9 +80,9 @@ app.post('/api/bookings', (req, res) => {
   const token = new grpc.Metadata();
   token.add('Authorization', `${req.header('Authorization').split(' ')[1]}`);
 
-  const { slot, gymId } = req.body;
+  const { date, slot, gymId } = req.body;
 
-  bookingClient.CreateBooking({ slot, gymId }, token, (error, booking) => {
+  bookingClient.CreateBooking({ date, slot, gymId }, token, (error, booking) => {
     if (error) {
       if (error.code === grpc.status.ALREADY_EXISTS) {
         return res.status(409).send({ details: error.details }); // Ensure return to avoid sending multiple responses
@@ -123,19 +123,19 @@ app.get('/api/bookings', (req, res) => {
 // USING THE EXPRESS ROUTE TO CALL THE gRPC METHOD (REMOVE THIS WHEN REMOVING EXPRESS ROUTES)
 app.get('/api/bookings/user', (req, res) => {
 
-    // Pass the token from request into the gRPC call metadata (in future, cannot use HTTP headers as no HTTP call into gRPC. so do this for now)
-    const token = new grpc.Metadata();
-    token.add('Authorization', `${req.header('Authorization').split(' ')[1]}`);
+  // Pass the token from request into the gRPC call metadata (in future, cannot use HTTP headers as no HTTP call into gRPC. so do this for now)
+  const token = new grpc.Metadata();
+  token.add('Authorization', `${req.header('Authorization').split(' ')[1]}`);
 
-    bookingClient.GetUserBookings({}, token, (error, response) => {
-      if (error) {
-        console.error('Error fetching user bookings via gRPC:', error);
-        res.status(500).send('Failed to fetch user bookings.');
-      } else {
-        res.status(200).json(response.bookings);
-      }
-    });
+  bookingClient.GetUserBookings({}, token, (error, response) => {
+    if (error) {
+      console.error('Error fetching user bookings via gRPC:', error);
+      res.status(500).send('Failed to fetch user bookings.');
+    } else {
+      res.status(200).json(response.bookings);
+    }
   });
+});
 
 // Route to fetch gym's bookings
 // USING THE EXPRESS ROUTE TO CALL THE gRPC METHOD (REMOVE THIS WHEN REMOVING EXPRESS ROUTES)
@@ -166,25 +166,25 @@ app.delete('/api/bookings/delete/:id', (req, res) => {
       return res.status(500).send('Failed to delete booking.');
     }
     res.status(200).json(response);
-    });
+  });
 });
 
 // gRPC methods implementation
 // Get a booking by ID
-async function getBooking (call, callback) {
-  try{
+async function getBooking(call, callback) {
+  try {
     const db = await connectDB();
     const bookingsCollection = db.collection('bookings');
     const booking = await bookingsCollection.findOne({ id: call.request.id });
-    if(booking){
+    if (booking) {
       callback(null, booking);
-    }else{
+    } else {
       callback({
         code: grpc.status.NOT_FOUND,
         details: 'Booking not found',
       });
     }
-  }catch(error){
+  } catch (error) {
     callback({
       code: grpc.status.INTERNAL,
       details: 'Error fetching booking',
@@ -193,13 +193,13 @@ async function getBooking (call, callback) {
 };
 
 // Get all bookings
-async function getAllBookings (call, callback) {
-  try{
+async function getAllBookings(call, callback) {
+  try {
     const db = await connectDB();
     const bookingsCollection = db.collection('bookings');
     const bookings = await bookingsCollection.find({}).toArray();
-    callback(null, {bookings});
-  }catch(error){
+    callback(null, { bookings });
+  } catch (error) {
     callback({
       code: grpc.status.INTERNAL,
       details: 'Error fetching bookings',
@@ -209,19 +209,19 @@ async function getAllBookings (call, callback) {
 };
 
 // Get all bookings for a user
-async function getUserBookings (call, callback) {
-  try{
+async function getUserBookings(call, callback) {
+  try {
     // Extract the token from the metadata
     const token = call.metadata.get('authorization')[0];
-    
+
     // Decode the token to get the user
     const user = await getUserFromToken(token);
 
     const db = await connectDB();
     const bookingsCollection = db.collection('bookings');
     const bookings = await bookingsCollection.find({ user: user }).toArray();
-    callback(null, {bookings});
-  }catch(error){
+    callback(null, { bookings });
+  } catch (error) {
     callback({
       code: grpc.status.INTERNAL,
       details: 'Error fetching user bookings',
@@ -229,32 +229,14 @@ async function getUserBookings (call, callback) {
   }
 };
 
-// Create a new booking
-async function createBooking(call, callback) {
+// Get all bookings for a gym
+async function getGymBookings(call, callback) {
   try {
     const db = await connectDB();
     const bookingsCollection = db.collection('bookings');
-    const booking = call.request;
-    booking.id = Math.floor(Math.random() * 1000); // Generate a random ID
-    booking.gymId = parseInt(booking.gymId); // Convert gymId string to integer
-    await bookingsCollection.insertOne(booking);
-    callback(null, booking);
-  } catch (error) {
-    callback({
-      code: grpc.status.INTERNAL,
-      details: 'Error creating booking',
-    });
-  }
-}
-
-// Get all bookings for a gym
-async function getGymBookings (call, callback) {
-  try{
-    const db = await connectDB();
-    const bookingsCollection = db.collection('bookings');
     const bookings = await bookingsCollection.find({ gymId: call.request.gymId }).toArray();
-    callback(null, {bookings});
-  }catch(error){
+    callback(null, { bookings });
+  } catch (error) {
     callback({
       code: grpc.status.INTERNAL,
       details: 'Error fetching gym bookings',
@@ -262,6 +244,7 @@ async function getGymBookings (call, callback) {
   }
 };
 
+// Create a new booking
 async function createBooking(call, callback) {
   try {
     // Extract the token from the metadata 
@@ -272,11 +255,12 @@ async function createBooking(call, callback) {
 
     const db = await connectDB();
     const bookingsCollection = db.collection('bookings');
-    const { slot, gymId } = call.request;
+    const { date, slot, gymId } = call.request;
 
     // Check for duplicate booking (same user, gymId, and slot)
     const duplicateBooking = await bookingsCollection.findOne({
       user: user,
+      date: date,
       gymId: parseInt(gymId), // Make sure gymId is an integer
       slot: slot,
     });
@@ -306,10 +290,10 @@ async function createBooking(call, callback) {
 
 // Delete a booking by id
 async function deleteBooking(call, callback) {
-  try{
+  try {
     // Extract the token from the metadata
     const token = call.metadata.get('authorization')[0];
-    
+
     // Decode the token to get the user
     const user = await getUserFromToken(token);
 
@@ -317,7 +301,7 @@ async function deleteBooking(call, callback) {
     const bookingsCollection = db.collection('bookings');
     const booking = await bookingsCollection.findOne({ id: call.request.id });
 
-    if(booking.user !== user){
+    if (booking.user !== user) {
       callback({
         code: grpc.status.PERMISSION_DENIED,
         details: 'You are not authorized to delete this booking',
@@ -325,16 +309,16 @@ async function deleteBooking(call, callback) {
       return;
     }
 
-    if(booking){
+    if (booking) {
       await bookingsCollection.deleteOne({ id: call.request.id });
       callback(null, {});
-    }else{
+    } else {
       callback({
         code: grpc.status.NOT_FOUND,
         details: 'Booking not found',
       });
     }
-  }catch(error){
+  } catch (error) {
     callback({
       code: grpc.status.INTERNAL,
       details: 'Error deleting booking',
@@ -419,8 +403,8 @@ app.listen(PORT, () => {
 
 // Start gRPC server
 const grpcServer = new grpc.Server();
-grpcServer.addService(bookingProto.service, { 
-  GetBooking:  getBooking,
+grpcServer.addService(bookingProto.service, {
+  GetBooking: getBooking,
   GetAllBookings: getAllBookings,
   GetUserBookings: getUserBookings,
   GetGymBookings: getGymBookings,
