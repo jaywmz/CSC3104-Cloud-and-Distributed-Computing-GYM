@@ -375,7 +375,8 @@ async function editGym(call, callback) {
     }
 }
 
-// Delete Gym via gRPC
+// Delete Gym via gRPC got problem
+/*
 async function deleteGym(call, callback) {
     const { gymID } = call.request;
 
@@ -394,7 +395,7 @@ async function deleteGym(call, callback) {
             details: 'Error deleting gym',
         });
     }
-}
+}*/
 
 // Edit Gym
 app.put('/api/edit-gym/:gymID', async (req, res) => {
@@ -428,19 +429,30 @@ app.delete('/api/delete-gym/:gymID', async (req, res) => {
     const gymID = parseInt(req.params.gymID);
 
     try {
-        const deleteResult = await gymsCollection.deleteOne({ gymID: gymID });
+        // First, delete all equipment associated with this gymID
+        const deleteEquipmentResult = await equipmentCollection.deleteMany({ gymID: gymID });
 
-        if (deleteResult.deletedCount === 0) {
+        if (deleteEquipmentResult.deletedCount === 0) {
+            console.log(`No equipment found for gymID: ${gymID}`);
+        } else {
+            console.log(`Deleted ${deleteEquipmentResult.deletedCount} pieces of equipment associated with gymID: ${gymID}`);
+        }
+
+        // Then delete the gym
+        const deleteGymResult = await gymsCollection.deleteOne({ gymID: gymID });
+
+        if (deleteGymResult.deletedCount === 0) {
             return res.status(404).json({ message: 'Gym not found' });
         }
 
         console.log(`Gym deleted with gymID: ${gymID}`);
-        return res.sendStatus(200);
+        return res.status(200).json({ message: 'Gym and associated equipment deleted successfully' });
     } catch (err) {
-        console.error(`Error deleting gym: ${err}`);
-        return res.status(500).json({ message: 'Server error. Failed to delete gym' });
+        console.error(`Error deleting gym and equipment: ${err}`);
+        return res.status(500).json({ message: 'Server error. Failed to delete gym and equipment' });
     }
 });
+
 
 
 // Get all gyms (gRPC)
