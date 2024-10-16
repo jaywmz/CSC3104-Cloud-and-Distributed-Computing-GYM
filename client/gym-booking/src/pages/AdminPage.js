@@ -111,33 +111,35 @@ const AdminPage = () => {
     // Render tab content based on the active tab
     const renderTabContent = () => {
         if (activeTab === 'createGym') {
-    return (
-        <div className="admin-page-container">
-            {/* Header with Logout Button */}
-            <header className="header">
-                <h2>Admin Dashboard</h2>
-                <button className="logout-button" onClick={handleLogout}>Logout</button>
-            </header>
+            return (
+                <div className="admin-page-container">
+                    {/* Header with Logout Button */}
+                    <header className="header">
+                        <h2>Admin Dashboard</h2>
+                        <button className="logout-button" onClick={handleLogout}>Logout</button>
+                    </header>
 
-            <div className="form-container">
-                {/* Form for creating gym */}
-                <div className="form-box">
-                    <h3>Create Gym</h3>
-                    <input 
-                        type="text" 
-                        placeholder="Gym Name" 
-                        value={gymName} 
-                        onChange={(e) => setGymName(e.target.value)} 
-                        className="form-input"
-                    />
-                    <input 
-                        type="number" 
-                        placeholder="Max Capacity" 
-                        value={maxCap} 
-                        onChange={(e) => setMaxCap(e.target.value)} 
-                        className="form-input"
-                    />
-                    <button className="create-button" onClick={handleCreateGym}>Create Gym</button>
+                    <div className="form-container">
+                        {/* Form for creating gym */}
+                        <div className="form-box">
+                            <h3>Create Gym</h3>
+                            <input 
+                                type="text" 
+                                placeholder="Gym Name" 
+                                value={gymName} 
+                                onChange={(e) => setGymName(e.target.value)} 
+                                className="form-input"
+                            />
+                            <input 
+                                type="number" 
+                                placeholder="Max Capacity" 
+                                value={maxCap} 
+                                onChange={(e) => setMaxCap(e.target.value)} 
+                                className="form-input"
+                            />
+                            <button className="create-button" onClick={handleCreateGym}>Create Gym</button>
+                        </div>
+                    </div>
                 </div>
             );
         } else if (activeTab === 'createEquipment') {

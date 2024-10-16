@@ -176,10 +176,11 @@ const BookingPage = () => {
       {/* Navbar */}
       <nav className="navbar navbar-expand-lg navbar-light bg-light mb-3 shadow-sm p-2">
         <div className="container-fluid">
-          <a className="navbar-brand" href="/">Gym Booking</a>
-          <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span className="navbar-toggler-icon"></span>
-          </button>
+          <a className="navbar-brand" href="/">GymKube</a>
+          <ul className="navbar-nav me-auto">
+            <li className="nav-item"><a className="nav-link" href="/bookings">Bookings</a></li>
+            <li className="nav-item"><a className="nav-link" href="/occupancy">Gym Occupancy</a></li>
+          </ul>
           <div className="collapse navbar-collapse" id="navbarNav">
             <ul className="navbar-nav ms-auto">
               <li className="nav-item">

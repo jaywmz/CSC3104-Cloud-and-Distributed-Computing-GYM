@@ -1,52 +1,54 @@
+html, #root{
+  background: linear-gradient(135deg, #d3cce3, #e9e4f0);
+}
+
 .booking-page {
-    background: linear-gradient(135deg, #d3cce3, #e9e4f0);
-    padding: 30px;
-    min-height: 100vh;
-  }
+  min-height: 100vh;
+}
   
-  .card {
-    border-radius: 15px;
-    overflow: hidden;
-  }
+.card {
+  border-radius: 15px;
+  overflow: hidden;
+}
   
-  .btn-gradient {
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: white;
-    border: none;
-    transition: all 0.3s ease;
-  }
+.btn-gradient {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border: none;
+  transition: all 0.3s ease;
+}
   
-  .btn-gradient:hover {
-    background: linear-gradient(135deg, #764ba2, #667eea);
-  }
+.btn-gradient:hover {
+  background: linear-gradient(135deg, #764ba2, #667eea);
+}
   
-  .bg-gradient-primary {
-    background: linear-gradient(135deg, #667eea, #764ba2);
-  }
+.bg-gradient-primary {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+}
   
-  .spinner-border {
-    margin-top: 20px;
-  }
+.spinner-border {
+   margin-top: 20px;
+}
   
-  .list-group-item {
-    border-radius: 10px;
-    transition: box-shadow 0.3s ease;
-  }
+.list-group-item {
+  border-radius: 10px;
+  transition: box-shadow 0.3s ease;
+}
   
-  .list-group-item:hover {
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  }
+.list-group-item:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
   
-  .modal-backdrop {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black */
-    z-index: 1040; /* Below the modal but above other content */
-  }
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black */
+  z-index: 1040; /* Below the modal but above other content */
+}
   
-  .modal.show {
-    z-index: 1050; /* Above the backdrop */
-  }
+.modal.show {
+  z-index: 1050; /* Above the backdrop */
+}
