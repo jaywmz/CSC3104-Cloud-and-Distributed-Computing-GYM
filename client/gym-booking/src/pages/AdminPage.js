@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import '../css/AdminPage.css'; // Link to external CSS for styling
+import { getAllBookings } from '../services/occupancyService';
 
 const AdminPage = () => {
     const [gymName, setGymName] = useState('');
@@ -9,6 +10,7 @@ const AdminPage = () => {
     const [equipmentType, setEquipmentType] = useState('');
     const [gymID, setGymID] = useState('');
     const [purpose, setPurpose] = useState('');
+    const [bookings, setBookings] = useState([]); // Store the list of bookings
 
     const [gyms, setGyms] = useState([]); // Store the list of gyms
 
@@ -26,6 +28,20 @@ const AdminPage = () => {
 
         fetchGyms();
     }, []); // Empty dependency array ensures this runs only once when the component mounts
+
+    // Fetch all bookings when the component loads
+    useEffect(() => {
+        const fetchBookings = async () => {
+            try {
+                const bookings = await getAllBookings(); // Fetch bookings using the middleware
+                setBookings(bookings); // Set the bookings in state
+            } catch (error) {
+                console.error('Error fetching bookings:', error);
+            }
+        };
+
+        fetchBookings();
+    }, []);
 
     // Handle gym creation
     const handleCreateGym = async () => {
@@ -157,6 +173,17 @@ const AdminPage = () => {
                         className="form-input"
                     />
                     <button className="create-button" onClick={handleCreateEquipment}>Create Equipment</button>
+                </div>
+                {/* Display bookings */}
+                <div className="form-box">
+                    <h3>All Bookings</h3>
+                    <ul className="booking-list">
+                        {bookings.map((booking) => (
+                            <li key={booking.id}>
+                                User: {booking.user}, Slot: {booking.slot}, Gym ID: {booking.gymId}
+                            </li>
+                        ))}
+                    </ul>
                 </div>
             </div>
         </div>

@@ -38,6 +38,13 @@ const packageDefinition = protoLoader.loadSync(PROTO_PATH, {});
 const userProto = grpc.loadPackageDefinition(packageDefinition).UserService;
 const userClient = new userProto('localhost:50051', grpc.credentials.createInsecure());
 
+/*gRPC SET UP */
+// gRPC server setup for booking-service
+const PROTO_PATH_BOOKING = path.join(__dirname, '../booking-service/booking.proto');
+const packageDefinitionBooking = protoLoader.loadSync(PROTO_PATH_BOOKING, {});
+const bookingProto = grpc.loadPackageDefinition(packageDefinitionBooking).BookingService;
+const bookingClient = new bookingProto('localhost:50052', grpc.credentials.createInsecure());
+
 // gRPC server setup for occupancy-service
 const PROTO_PATH_OCCUPANCY = path.join(__dirname, 'occupancy.proto');
 const packageDefinitionOccupancy = protoLoader.loadSync(PROTO_PATH_OCCUPANCY, {});
@@ -102,6 +109,32 @@ mqttClient.on('message', async (topic, message) => {
     }
 });
 
+// Define a function to fetch all bookings from the BookingService via gRPC
+function getAllBookingsFromBookingService() {
+    return new Promise((resolve, reject) => {
+      bookingClient.GetAllBookings({}, (error, response) => {
+        if (error) {
+          console.error('Error fetching bookings from BookingService:', error);
+          return reject('Failed to fetch bookings.');
+        }
+        resolve(response.bookings);
+      });
+    });
+  }
+
+// Define a gRPC method in the occupancy service for fetching all bookings
+async function getAllBookings(call, callback) {
+    try {
+      const bookings = await getAllBookingsFromBookingService();  // Call the booking service via gRPC
+      callback(null, { bookings });
+    } catch (error) {
+      callback({
+        code: grpc.status.INTERNAL,
+        details: 'Error fetching bookings from BookingService',
+      });
+    }
+  }
+
 // Function to call user gRPC to convert token to user
 function getUserFromToken(token) {
     return new Promise((resolve, reject) => {
@@ -128,6 +161,18 @@ async function findCheckIn(username) {
         return false;
     }
 };
+
+// Add this route to serve getAllBookings request via the Occupancy Service
+app.get('/api/get-all-bookings', async (req, res) => {
+    try {
+        const bookings = await getAllBookingsFromBookingService(); // This calls your gRPC service
+        res.status(200).json(bookings);
+    } catch (error) {
+        console.error('Error fetching bookings:', error);
+        res.status(500).send('Failed to fetch bookings.');
+    }
+});
+
 
 // Get occupancy by counting number of checked-in users in every gym
 app.get('/api/occupancy', async (req, res) => {
@@ -321,7 +366,8 @@ app.listen(PORT, () => {
 // Start occupancy gRPC server
 const grpcServer = new grpc.Server();
 grpcServer.addService(occupancyProto.service, { 
-  GetGyms : getGyms
+  GetGyms : getGyms,
+  GetAllBookings: getAllBookings,  //fetch all bookings for admin overview to see all booking status
 });
 grpcServer.bindAsync('0.0.0.0:50053', grpc.ServerCredentials.createInsecure(), () => {
   console.log('gRPC server running at http://0.0.0.0:50053');

@@ -2,6 +2,7 @@ syntax = "proto3";
 
 service OccupancyService {
     rpc GetGyms(voidNoParam) returns (gymList);
+    rpc GetAllBookings(voidNoParam) returns (bookingList); 
 }
 
 message voidNoParam {}
@@ -14,4 +15,15 @@ message gym {
 
 message gymList {
     repeated gym gyms = 1;
+}
+
+message booking {
+    int32 id = 1;
+    string user = 2;
+    string slot = 3;
+    int32 gymId = 4;
+}
+
+message bookingList {
+    repeated booking bookings = 1;
 }
