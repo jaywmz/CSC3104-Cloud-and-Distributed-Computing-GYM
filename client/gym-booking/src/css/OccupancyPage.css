@@ -1,83 +1,81 @@
-/* OccupancyPage.css */
-
 .occupancy-page {
-    max-width: 1200px; /* Reduced max width */
+    max-width: 1200px; 
     margin: 0 auto;
-    padding: 20px; /* Reduced padding for a more compact layout */
+    padding: 20px; 
     font-family: 'Arial', sans-serif;
-    background-color: #f4f4f4;
-    border-radius: 10px; /* Slightly smaller border radius */
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    background-color: #f9f9f9;
+    border-radius: 12px; 
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
 }
 
 .header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 15px; /* Reduced margin */
+    margin-bottom: 20px;
 }
 
 h2 {
-    font-size: 28px; /* Slightly reduced font size for heading */
+    font-size: 32px; 
     color: #333;
+    text-align: center;
+}
+
+.back-button, .logout-button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s, transform 0.2s;
 }
 
 .back-button {
     background-color: #007bff;
     color: white;
-    padding: 8px 16px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-    font-weight: bold;
 }
 
 .back-button:hover {
     background-color: #0056b3;
+    transform: translateY(-2px);
 }
 
 .logout-button {
     background-color: #ff5252;
     color: white;
-    padding: 10px 20px; /* Slightly reduced padding */
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-    font-weight: bold;
 }
 
 .logout-button:hover {
     background-color: #ff3333;
-}
-
-.no-gyms {
-    color: #888;
-    font-size: 18px;
-    text-align: center;
-    margin-top: 10px; /* Reduced margin */
+    transform: translateY(-2px);
 }
 
 .gym-list {
     display: flex;
     flex-wrap: wrap;
-    gap: 20px; /* Reduced gap between boxes */
+    gap: 20px;
     justify-content: space-between;
 }
 
 .gym-box {
-    background-color: white;
-    padding: 20px; /* Reduced padding */
-    border-radius: 10px; /* Slightly smaller border radius */
+    background-color: rgb(67, 8, 126);
+    padding: 5px;
+    border-radius: 10px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    width: 45%; /* Slightly smaller width */
-    min-width: 300px; /* Reduced minimum width */
+    width: 49%;
+    min-width: 300px;
+    transition: transform 0.2s, box-shadow 0.2s ease;
+}
+
+.gym-box:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
 }
 
 h3 {
-    font-size: 20px; /* Slightly reduced font size */
-    margin-bottom: 15px; /* Reduced margin */
+    font-size: 22px;
+    margin-bottom: 15px;
     color: #333;
 }
 
@@ -85,26 +83,28 @@ h3 {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 12px; /* Reduced margin */
-    padding: 8px; /* Reduced padding */
+    margin-bottom: 12px;
+    padding: 10px;
     background-color: #f9f9f9;
-    border-radius: 6px;
+    border-radius: 8px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
+.equipment-item:hover {
+    background-color: #eaeaea;
+}
+
 .equipment-name {
-    font-size: 15px; /* Reduced font size */
+    font-size: 15px;
     font-weight: bold;
     color: #444;
 }
 
 .equipment-status {
     font-size: 14px;
-    padding: 6px 10px; /* Reduced padding */
-    border-radius: 5px;
+    padding: 8px 12px;
+    border-radius: 6px;
     color: white;
-    margin-right: 8px; /* Slightly reduced margin */
-    min-width: 70px; /* Reduced minimum width */
     text-align: center;
 }
 
@@ -117,10 +117,18 @@ h3 {
 }
 
 .gym-link {
-    color: #007bff; /* Bootstrap link color */
+    color: #007bff;
     text-decoration: none;
 }
 
 .gym-link:hover {
     text-decoration: underline;
+}
+
+.card-title {
+    transition: color 0.3s ease;
+}
+
+.card-title:hover {
+    color: #0056b3;
 }
