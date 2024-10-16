@@ -375,8 +375,8 @@ async function editGym(call, callback) {
     }
 }
 
-// Delete Gym via gRPC got problem
-/*
+// Delete Gym via gRPC 
+
 async function deleteGym(call, callback) {
     const { gymID } = call.request;
 
@@ -395,7 +395,7 @@ async function deleteGym(call, callback) {
             details: 'Error deleting gym',
         });
     }
-}*/
+}
 
 // Edit Gym
 app.put('/api/edit-gym/:gymID', async (req, res) => {
