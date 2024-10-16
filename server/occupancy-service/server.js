@@ -287,8 +287,9 @@ app.post('/api/create-gym', async (req, res) => {
     }
 
     try {
-        const count = await gymsCollection.countDocuments();
-        const newGymID = count + 1;
+        // Find the largest gymID in the collection
+        const largestGym = await gymsCollection.find().sort({ gymID: -1 }).limit(1).toArray();
+        const newGymID = largestGym.length > 0 ? largestGym[0].gymID + 1 : 1;  // If no gym exists, start at 1
 
         const newGym = {
             gymID: newGymID,
@@ -307,6 +308,7 @@ app.post('/api/create-gym', async (req, res) => {
 
 
 
+
 // Create Equipment
 app.post('/api/create-equipment', async (req, res) => {
     const { equipmentName, equipmentType, gymID, purpose } = req.body;
@@ -316,8 +318,9 @@ app.post('/api/create-equipment', async (req, res) => {
     }
 
     try {
-        const count = await equipmentCollection.countDocuments();
-        const newItemID = count + 1;
+        // Find the largest itemID in the collection
+        const largestItem = await equipmentCollection.find().sort({ itemID: -1 }).limit(1).toArray();
+        const newItemID = largestItem.length > 0 ? largestItem[0].itemID + 1 : 1;  // If no item exists, start at 1
 
         const newEquipment = {
             itemID: newItemID,
