@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { createBooking, getUserBookings, getGyms, updateBooking, deleteBooking } from '../services/bookingService';
 import 'bootstrap/dist/css/bootstrap.min.css'; // Import Bootstrap
 import '../css/BookingPage.css'; // Custom CSS file for extra styles
+import {jwtDecode} from 'jwt-decode';
 
 const BookingPage = () => {
   const [userBookings, setUserBookings] = useState([]);
@@ -10,6 +11,7 @@ const BookingPage = () => {
   const [gyms, setGyms] = useState([]); // Store gyms in state
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false); // Loading state
+  const [username, setUsername] = useState(''); 
 
   // Define available timeslots
   const timeslots = [
@@ -31,8 +33,15 @@ const BookingPage = () => {
   ];
 
   useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      // Decode the token to get the username
+      const decodedToken = jwtDecode(token);
+      setUsername(decodedToken.username); // Set the username from the token
+
     fetchUserBookings();
     fetchGyms();
+  }
   }, []);
 
   const fetchGyms = async () => {
@@ -131,6 +140,10 @@ const BookingPage = () => {
           <div className="collapse navbar-collapse" id="navbarNav">
             <ul className="navbar-nav ms-auto">
               <li className="nav-item">
+                {/* Display the username here */}
+                <span className="navbar-text me-3">Logged in as: <strong>{username}</strong></span>
+                </li>
+              <li className="nav-item"> 
                 <button onClick={handleLogout} className="btn btn-gradient btn-sm">Logout</button>
               </li>
             </ul>
