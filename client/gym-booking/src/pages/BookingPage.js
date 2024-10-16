@@ -12,6 +12,8 @@ const BookingPage = () => {
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false); // Loading state
   const [username, setUsername] = useState(''); 
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [bookingDetails, setBookingDetails] = useState({});
 
   // Define available timeslots
   const timeslots = [
@@ -103,20 +105,13 @@ const BookingPage = () => {
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleCreateBooking = (e) => {
     e.preventDefault();
-    setLoading(true);
-    try {
-      await createBooking(newBooking);
-      await fetchUserBookings(); // Refresh the bookings list after submission
-      setMessage('Booking created successfully!');
-      setNewBooking({ slot: '', gymId: '' }); // Reset the form
-    } catch (error) {
-      setMessage('Failed to create booking.');
-    } finally {
-      setLoading(false);
-    }
+    const gymName = gyms.find((g) => g.gymID === parseInt(newBooking.gymId, 10)).gymName;
+    const details = { gymName: gymName, time: newBooking.slot };
+    openModal(details);
   };
+
 
   const getGymNameById = (gymId) => {
     const gym = gyms.find((g) => g.gymID === gymId);
@@ -126,6 +121,54 @@ const BookingPage = () => {
   const handleLogout = () => {
     localStorage.removeItem('token');
     window.location.href = '/login';
+  };
+
+  const ConfirmModal = ({ isOpen, details, onClose, onConfirm }) => {
+    if (!isOpen) return null;
+  
+    return (
+      <>
+      <div className="modal-backdrop"></div>
+        <div className="modal show d-block" tabIndex="-1">
+          <div className="modal-dialog">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Confirm Booking</h5>
+                <button type="button" className="btn-close" onClick={onClose}></button>
+              </div>
+              <div className="modal-body">
+                <p>Gym: {details.gymName}</p>
+                <p>Time: {details.time}</p>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+                <button type="button" className="btn btn-primary" onClick={onConfirm}>Confirm Booking</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  };
+
+  const openModal = (details) => {
+    setBookingDetails(details);
+    setIsConfirmModalOpen(true);
+  };
+
+  const confirmBooking = async () => {
+    try {
+      setLoading(true);
+      await createBooking(newBooking);
+      await fetchUserBookings(); // Refresh the bookings list after submission
+      setMessage('Booking created successfully!');
+      setNewBooking({ slot: '', gymId: '' }); // Reset the form
+    } catch (error) {
+      setMessage('Failed to create booking.');
+    } finally {
+      setLoading(false);
+      setIsConfirmModalOpen(false);
+    }
   };
 
   return (
@@ -173,7 +216,7 @@ const BookingPage = () => {
           {editingBooking ? 'Edit Booking' : 'Create a New Booking'}
         </div>
         <div className="card-body p-2">
-          <form onSubmit={editingBooking ? handleUpdateBooking : handleSubmit}>
+          <form onSubmit={editingBooking ? handleUpdateBooking : handleCreateBooking}>
             <div className="mb-2">
               <label htmlFor="slot" className="form-label small">Time Slot</label>
               <select
@@ -212,6 +255,14 @@ const BookingPage = () => {
           </form>
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={isConfirmModalOpen}
+        details={bookingDetails}
+        onClose={() => setIsConfirmModalOpen(false)}
+        onConfirm={confirmBooking}
+      />
+
 
       {/* User's Bookings */}
       <div className="card mb-3 shadow-sm rounded">
