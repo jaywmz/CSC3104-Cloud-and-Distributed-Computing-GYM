@@ -7,6 +7,7 @@ import BookingPage from './pages/BookingPage';
 import OccupancyPage from './pages/OccupancyPage';
 import AdminPage from './pages/AdminPage';
 import GymPage from './pages/GymPage';
+import UserPage from './pages/UserPage';
 import ProtectedRoute from './components/ProtectedRoute'; // Import ProtectedRoute
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -55,7 +56,17 @@ const App = () => {
             </ProtectedRoute>
           } 
         />
+        
+        <Route
+          path="/user"
+          element={
+            <ProtectedRoute allowedRoles={['user', 'admin']}> {/* Allow all users */}
+              <UserPage />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
+
     </Router>
   );
 };

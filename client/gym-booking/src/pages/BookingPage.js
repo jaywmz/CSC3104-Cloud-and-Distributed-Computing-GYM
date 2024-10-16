@@ -14,6 +14,7 @@ const BookingPage = () => {
   const [username, setUsername] = useState(''); 
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [bookingDetails, setBookingDetails] = useState({});
+  const [role, setRole] = useState('');
 
   // Define available timeslots
   const timeslots = [
@@ -40,6 +41,7 @@ const BookingPage = () => {
       // Decode the token to get the username
       const decodedToken = jwtDecode(token);
       setUsername(decodedToken.username); // Set the username from the token
+      setRole(decodedToken.role);
 
     fetchUserBookings();
     fetchGyms();
@@ -176,10 +178,13 @@ const BookingPage = () => {
       {/* Navbar */}
       <nav className="navbar navbar-expand-lg navbar-light bg-light mb-3 shadow-sm p-2">
         <div className="container-fluid">
-          <a className="navbar-brand" href="/">GymKube</a>
+          <a className="navbar-brand" href="/user">GymKube</a>
           <ul className="navbar-nav me-auto">
             <li className="nav-item"><a className="nav-link" href="/bookings">Bookings</a></li>
-            <li className="nav-item"><a className="nav-link" href="/occupancy">Gym Occupancy</a></li>
+            <li className="nav-item"><a className="nav-link" href="/occupancy">Gyms</a></li>
+            {role === 'admin' && (
+              <li className="nav-item"><a className="nav-link" href="/admin">Admin Dashboard</a></li>
+            )}
           </ul>
           <div className="collapse navbar-collapse" id="navbarNav">
             <ul className="navbar-nav ms-auto">

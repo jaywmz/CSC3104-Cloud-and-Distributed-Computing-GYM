@@ -26,11 +26,7 @@ const LoginPage = () => {
      
       const role = decodedToken.role;
       localStorage.setItem('role', role);
-      if (decodedToken.role === 'admin') {
-        navigate('/occupancy');
-      } else {
-        navigate('/bookings');
-      }
+      navigate('/user');
     } catch (error) {
       setMessage('Login failed. Please check your credentials.');
     } finally {
