@@ -1,114 +1,162 @@
-/* AdminPage.css */
-
 .admin-page-container {
-    max-width: 1000px; /* Increase width for better space utilization */
+    max-width: 1000px;
     margin: 20px auto;
-    padding: 30px; /* Increased padding for better spacing */
+    padding: 30px;
     font-family: 'Arial', sans-serif;
-    background-color: #ffffff; /* Changed background to pure white for a cleaner look */
-    border-radius: 15px; /* Softer rounded corners */
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Stronger shadow for depth */
-    transition: box-shadow 0.3s ease-in-out; /* Smooth transition for hover effect */
+    background-color: #ffffff;
+    border-radius: 15px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.3s ease-in-out;
+    position: relative; /* Ensure relative positioning to allow absolute positioning of children */
 }
 
 .admin-page-container:hover {
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15); /* Subtle hover effect for card */
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
 }
 
-.header {
+.admin-page-container .header {
+    position: relative; /* Needed to position elements inside */
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-bottom: 30px; /* Increased margin for better separation */
+    justify-content: center; /* Centers the title */
+    margin-bottom: 30px;
 }
 
-h2 {
-    font-size: 32px; /* Slightly increased font size for better visibility */
-    font-weight: 600; /* Bolder heading for emphasis */
+/* Adjust the title to center it */
+.admin-page-container h2 {
+    font-size: 32px;
+    font-weight: 600;
     color: #333;
-    text-transform: uppercase; /* Capitalized for a more professional tone */
+    text-transform: uppercase;
+    margin: 0;
+    position: absolute; /* Absolutely position the title within the header */
+    left: 50%;
+    transform: translateX(-50%); /* Perfectly center the title */
 }
 
-.logout-button {
-    background-color: #ff4c4c; /* Brightened color for a more modern look */
+/* Back button styles scoped to admin page */
+.admin-page-container .back-button {
+    position: absolute; /* Absolute positioning to pin it to the corner */
+    top: 10px; /* Align it vertically within the container */
+    left: 30px; /* Align it horizontally within the container */
+    background-color: #007bff;
     color: white;
-    padding: 12px 25px; /* Better padding for balance */
+    padding: 10px 20px;
     border: none;
     border-radius: 6px;
     cursor: pointer;
-    transition: background-color 0.3s, transform 0.2s; /* Added a transition for smoother hover effects */
+    font-weight: bold;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+.admin-page-container .back-button:hover {
+    background-color: #0056b3;
+    transform: scale(1.05);
+}
+
+/* Logout button styling scoped to admin page */
+.admin-page-container .logout-button {
+    position: absolute; /* Absolutely position this to the top-right */
+    top: -25px; /* Same vertical alignment as the back button */
+    right: 30px;
+    background-color: #ff4c4c;
+    color: white;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
     font-weight: bold;
 }
 
-.logout-button:hover {
+.admin-page-container .logout-button:hover {
     background-color: #ff2a2a;
-    transform: scale(1.05); /* Slight scale effect on hover */
+    transform: scale(1.05);
 }
 
-.form-container {
+/* Tab navigation styles scoped to admin page */
+.admin-page-container .tabs {
     display: flex;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 25px; /* Increased gap for more clarity between forms */
+    justify-content: space-around;
+    margin-bottom: 20px;
 }
 
-.form-box {
-    flex: 1 1 48%; /* Adjusted width for more balanced layout */
+.admin-page-container .tabs button {
+    flex: 1;
+    padding: 12px;
+    background-color: #f1f1f1;
+    border: none;
+    font-size: 16px;
+    font-weight: bold;
+    color: #333;
+    border-radius: 6px 6px 0 0;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.admin-page-container .tabs button.active {
+    background-color: #4CAF50;
+    color: white;
+    border-bottom: 2px solid #4CAF50; /* Adds highlight to active tab */
+}
+
+.admin-page-container .tabs button:hover {
+    background-color: #45a049;
+    color: white;
+}
+
+/* Tab content styles scoped to admin page */
+.admin-page-container .tab-content {
     background-color: #f9f9f9;
-    padding: 25px; /* Increased padding */
+    padding: 25px;
     border-radius: 12px;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease-in-out; /* Added transition for hover effect */
 }
 
-.form-box:hover {
-    transform: translateY(-5px); /* Slight lift on hover */
-}
-
-h3 {
+.admin-page-container h3 {
     font-size: 24px;
     color: #444;
-    margin-bottom: 20px; /* Better spacing for titles */
+    margin-bottom: 20px;
 }
 
-.form-input {
+.admin-page-container .form-input {
     width: 100%;
-    padding: 12px; /* Increased padding for inputs */
-    margin-bottom: 20px; /* Increased space between inputs */
+    padding: 12px;
+    margin-bottom: 20px;
     border: 1px solid #ddd;
-    border-radius: 8px; /* Softer corners */
+    border-radius: 8px;
     font-size: 16px;
-    transition: border-color 0.3s; /* Added transition for focus state */
+    transition: border-color 0.3s;
 }
 
-.form-input:focus {
-    border-color: #4CAF50; /* Highlight input on focus */
+.admin-page-container .form-input:focus {
+    border-color: #4CAF50;
     outline: none;
 }
 
-.create-button {
+.admin-page-container .create-button {
     width: 100%;
-    padding: 12px 0; /* Removed side padding for equal width */
+    padding: 12px;
     background-color: #4CAF50;
     color: white;
     border: none;
     border-radius: 8px;
-    font-size: 18px; /* Slightly larger font size for buttons */
+    font-size: 18px;
     font-weight: bold;
     cursor: pointer;
     transition: background-color 0.3s, transform 0.2s;
 }
 
-.create-button:hover {
+.admin-page-container .create-button:hover {
     background-color: #45a049;
-    transform: scale(1.05); /* Add slight scaling effect */
+    transform: scale(1.05);
 }
 
-.admin-link {
+.admin-page-container .admin-link {
     margin-left: 20px;
     background-color: #4CAF50;
     color: white;
-    padding: 12px 20px; /* Slightly smaller padding */
+    padding: 12px 20px;
     border-radius: 6px;
     text-decoration: none;
     font-weight: bold;
@@ -116,7 +164,7 @@ h3 {
     transition: background-color 0.3s, transform 0.2s;
 }
 
-.admin-link:hover {
+.admin-page-container .admin-link:hover {
     background-color: #45a049;
-    transform: scale(1.05); /* Add scaling effect */
+    transform: scale(1.05);
 }
