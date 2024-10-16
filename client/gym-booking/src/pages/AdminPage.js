@@ -3,6 +3,7 @@ import '../css/AdminPage.css'; // Link to external CSS for styling
 import { getAllBookings } from '../services/occupancyService';
 
 const AdminPage = () => {
+    const [activeTab, setActiveTab] = useState('createGym'); // Manage active tab
     const [gymName, setGymName] = useState('');
     const [maxCap, setMaxCap] = useState('');
 
@@ -107,6 +108,9 @@ const AdminPage = () => {
         window.location.href = '/login';
     };
 
+    // Render tab content based on the active tab
+    const renderTabContent = () => {
+        if (activeTab === 'createGym') {
     return (
         <div className="admin-page-container">
             {/* Header with Logout Button */}
@@ -135,8 +139,9 @@ const AdminPage = () => {
                     />
                     <button className="create-button" onClick={handleCreateGym}>Create Gym</button>
                 </div>
-
-                {/* Form for creating equipment */}
+            );
+        } else if (activeTab === 'createEquipment') {
+            return (
                 <div className="form-box">
                     <h3>Create Equipment</h3>
                     <input 
@@ -174,7 +179,9 @@ const AdminPage = () => {
                     />
                     <button className="create-button" onClick={handleCreateEquipment}>Create Equipment</button>
                 </div>
-                {/* Display bookings */}
+            );
+        } else if (activeTab === 'viewBookings') {
+            return (
                 <div className="form-box">
                     <h3>All Bookings</h3>
                     <ul className="booking-list">
@@ -185,6 +192,43 @@ const AdminPage = () => {
                         ))}
                     </ul>
                 </div>
+            );
+        }
+    };
+
+    return (
+        <div className="admin-page-container">
+            {/* Header with Logout Button */}
+            <header className="header">
+                <h2>Admin Dashboard</h2>
+                <button className="logout-button" onClick={handleLogout}>Logout</button>
+            </header>
+
+            {/* Tabs for navigation */}
+            <nav className="tabs">
+                <button
+                    className={activeTab === 'createGym' ? 'active' : ''}
+                    onClick={() => setActiveTab('createGym')}
+                >
+                    Create Gym
+                </button>
+                <button
+                    className={activeTab === 'createEquipment' ? 'active' : ''}
+                    onClick={() => setActiveTab('createEquipment')}
+                >
+                    Create Equipment
+                </button>
+                <button
+                    className={activeTab === 'viewBookings' ? 'active' : ''}
+                    onClick={() => setActiveTab('viewBookings')}
+                >
+                    View Bookings
+                </button>
+            </nav>
+
+            {/* Render content based on selected tab */}
+            <div className="tab-content">
+                {renderTabContent()}
             </div>
         </div>
     );
