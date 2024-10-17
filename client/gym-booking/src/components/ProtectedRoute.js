@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Navigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 // Decode the JWT token
 const decodeToken = (token) => {
@@ -19,6 +19,26 @@ const isTokenExpired = (token) => {
   return decodedToken.exp < currentTime;  // Check if the expiration time has passed
 };
 
+// Unauthorized component to display the error and provide a back button
+const Unauthorized = () => {
+  const navigate = useNavigate();
+
+  // Function to go back to the previous page
+  const handleGoBack = () => {
+    navigate(-1);  // This navigates back to the previous page in history
+  };
+  return (
+    <div style={{ textAlign: 'center', marginTop: '50px' }}>
+      <h1>Error 401 - Unauthorized</h1>
+      <p>Sorry, your request could not be processed.</p>
+      {/* Change the button to a link that goes back to the previous page */}
+      <a onClick={handleGoBack} style={{ cursor: 'pointer', color: 'blue', textDecoration: 'underline' }}>
+        Return
+      </a>
+    </div>
+  );
+};
+
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const token = localStorage.getItem('token'); // Retrieve token from localStorage
   const [userRole, setUserRole] = useState(null); // Store user role from token
@@ -31,16 +51,17 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     }
   }, [token]);
 
-  // If no token or the token is expired, redirect to the login page
+  // If no token or the token is expired, display 401 Unauthorized message
   if (!token || isTokenExpired(token)) {
     localStorage.removeItem('token'); // Remove expired token
-    return <Navigate to="/login" replace />;
+    return <Unauthorized />;  // Display 401 Unauthorized message
   }
 
-  // If the user's role is not in the list of allowedRoles, redirect to unauthorized page
+  // If the user's role is not in the list of allowedRoles, display 401 Unauthorized message
   if (userRole && !allowedRoles.includes(userRole)) {
-    return <Navigate to="/unauthorized" replace />;
+    return <Unauthorized />;  // Display 401 Unauthorized message
   }
+
 
   // If token exists and role is allowed, render the requested component
   return children;
