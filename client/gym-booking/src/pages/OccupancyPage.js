@@ -63,7 +63,7 @@ const OccupancyPage = () => {
                     <Link to={`/gym/${gym.gymID}`} className="gym-link col">
                         <div key={index} className="gym-box">
                             <div className="card-body">
-                                <label id="gym-name">{gym.gymName} capacity:</label>
+                                <label id="gym-name">{gym.gymName} occupancy:</label>
                                 <span className='cap-bar'>
                                     <div className='capacity' style={{width:gym.percent}}>{gym.percent}</div>
                                 </span>

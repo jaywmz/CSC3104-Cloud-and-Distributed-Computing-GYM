@@ -134,7 +134,7 @@ h2 {
     margin-right: auto;
     text-align: center;
     width: 30%; 
-    background-color: #ddd;
+    background-color: lightgray;
     display: inline-block;
 }
 
@@ -143,7 +143,7 @@ h2 {
     padding-top: 5px; /* Add top padding */
     padding-bottom: 5px; /* Add bottom padding */
     color: black; /* White text color */
-    background-color: lightgreen;
+    background-color: lightcoral;
 }
 
 #eqp-label {
