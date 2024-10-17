@@ -220,3 +220,43 @@
     background-color: #c0392b;
     transform: scale(1.05);
 }
+
+/* ------------------- View Bookings Table ------------------- */
+.booking-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    font-size: 16px;
+    color: #333;
+}
+
+.booking-table thead {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.booking-table th, 
+.booking-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.booking-table th {
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.booking-table tr:hover {
+    background-color: #f5f5f5;
+}
+
+.booking-table td {
+    color: #555;
+}
+
+/* Date column */
+.booking-table .date-column {
+    white-space: nowrap;
+}
