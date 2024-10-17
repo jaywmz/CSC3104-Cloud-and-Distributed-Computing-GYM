@@ -52,22 +52,26 @@ const OccupancyPage = () => {
         if (!occupancy || occupancy.length === 0) {
             return <p className="no-gyms">No gyms available.</p>;
         }
-    
+
+        for (let gym of occupancy) {
+            gym.percent = (gym.occupants/gym.maxCap * 100).toFixed(1)+'%';
+        }
+
         return (
             <div className="gym-list row">
                 {occupancy.map((gym, index) => (
-                    <div key={index} className="gym-box col-md-6 mb-4">
-                        <div className="card shadow-lg h-100">
+                    <Link to={`/gym/${gym.gymID}`} className="gym-link col">
+                        <div key={index} className="gym-box">
                             <div className="card-body">
-                                <h3 className="card-title">
-                                    <Link to={`/gym/${gym.gymID}`} className="gym-link">
-                                        {gym.gymName} ({gym.occupants}/{gym.maxCap})
-                                    </Link>
-                                </h3>
-                                <ul className="list-group">
+                                <label id="gym-name">{gym.gymName} capacity:</label>
+                                <span className='cap-bar'>
+                                    <div className='capacity' style={{width:gym.percent}}>{gym.percent}</div>
+                                </span>
+                                <p id="eqp-label">Equipment status:</p>
+                                <ul className="equipment-list">
                                     {gym.equipment.map((item) => (
-                                        <li key={item.itemID} className="list-group-item d-flex justify-content-between">
-                                            <span>{item.name}</span>
+                                        <li key={item.itemID} className="equipment-item d-flex justify-content-between">
+                                            <span className='equipment-name'>{item.name}</span>
                                             <span className={`badge ${item.inUse ? 'bg-danger' : 'bg-success'}`}>
                                                 {item.inUse ? "In Use" : "Available"}
                                             </span>
@@ -76,7 +80,7 @@ const OccupancyPage = () => {
                                 </ul>
                             </div>
                         </div>
-                    </div>
+                    </Link>
                 ))}
             </div>
         );
@@ -108,6 +112,8 @@ const OccupancyPage = () => {
                     </div>
                 </div>
             </nav>
+
+            <h2>Real-time gym occupancy</h2>
 
             {/* Gym List */}
             <GymList />
