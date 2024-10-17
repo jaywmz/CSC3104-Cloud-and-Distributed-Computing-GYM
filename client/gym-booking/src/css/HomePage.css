@@ -1,0 +1,88 @@
+body {
+    overflow-x: hidden;
+  }
+  
+  .home-container {
+    position: relative;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+    animation: changeBackground 10s infinite alternate; /* Background color transition */
+  }
+  
+  /* Cube container */
+  .bubbles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    z-index: 1;
+    overflow: hidden;
+  }
+  
+  .bubble {
+    position: absolute;
+    bottom: -100px;
+    background-color: rgba(0, 150, 136, 0.7); /* Default cube color */
+    width: 50px;
+    height: 50px;
+    animation: float-cube 20s linear infinite;
+    transform: rotate(0deg); /* Default rotation */
+  }
+  
+  /* Unique sizes and animation delays for each cube */
+  .bubble:nth-child(1) { left: 10%; width: 80px; height: 80px; animation-duration: 15s; }
+  .bubble:nth-child(2) { left: 20%; width: 50px; height: 50px; animation-duration: 12s; animation-delay: 3s; }
+  .bubble:nth-child(3) { left: 25%; width: 70px; height: 70px; animation-duration: 20s; animation-delay: 6s; }
+  .bubble:nth-child(4) { left: 40%; width: 40px; height: 40px; animation-duration: 18s; }
+  .bubble:nth-child(5) { left: 55%; width: 90px; height: 90px; animation-duration: 22s; animation-delay: 4s; }
+  .bubble:nth-child(6) { left: 65%; width: 60px; height: 60px; animation-duration: 13s; }
+  .bubble:nth-child(7) { left: 75%; width: 30px; height: 30px; animation-duration: 16s; animation-delay: 2s; }
+  .bubble:nth-child(8) { left: 80%; width: 80px; height: 80px; animation-duration: 20s; }
+  .bubble:nth-child(9) { left: 90%; width: 50px; height: 50px; animation-duration: 19s; }
+  .bubble:nth-child(10) { left: 85%; width: 100px; height: 100px; animation-duration: 25s; animation-delay: 1s; }
+  
+  /* Animation for floating cubes with rotation */
+  @keyframes float-cube {
+    0% {
+      transform: translateY(0) rotate(0deg);
+      opacity: 0.8;
+    }
+    50% {
+      opacity: 0.5;
+      transform: translateY(-600px) rotate(180deg);
+    }
+    100% {
+      transform: translateY(-1200px) rotate(360deg);
+      opacity: 0;
+    }
+  }
+  
+  /* Animation for changing background color */
+  @keyframes changeBackground {
+    0% {
+      background: linear-gradient(to right, #ff9a9e, #fad0c4);
+    }
+    25% {
+      background: linear-gradient(to right, #a1c4fd, #c2e9fb);
+    }
+    50% {
+      background: linear-gradient(to right, #fbc2eb, #a6c1ee);
+    }
+    75% {
+      background: linear-gradient(to right, #ffecd2, #fcb69f);
+    }
+    100% {
+      background: linear-gradient(to right, #ff9a9e, #fad0c4);
+    }
+  }
+  
+  /* Card styling */
+  .card {
+    z-index: 2; /* Ensure card stays above cubes */
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  }
+  
