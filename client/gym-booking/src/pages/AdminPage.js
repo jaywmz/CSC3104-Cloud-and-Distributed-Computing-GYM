@@ -290,6 +290,7 @@ const AdminPage = () => {
                                 <tr>
                                     <th>User</th>
                                     <th>Slot</th>
+                                    <th>Date</th>
                                     <th>Gym Name</th>
                                     <th>Gym ID</th>
                                 </tr>
@@ -301,6 +302,7 @@ const AdminPage = () => {
                                         <tr key={booking.id}>
                                             <td>{booking.user}</td>
                                             <td>{booking.slot}</td>
+                                            <td>{new Date(booking.date).toLocaleDateString()}</td> {/* Format date */}
                                             <td>{gymDetails.gymName}</td>
                                             <td>{gymDetails.gymID}</td>
                                         </tr>
