@@ -190,6 +190,12 @@ const AdminPage = () => {
         navigate(-1); // Navigate to previous page
     };
 
+    // Map the gym ID from bookings to gym name
+    const getGymDetailsById = (gymId) => {
+        const gym = gyms.find(gym => gym.gymID === gymId);
+        return gym ? { gymName: gym.gymName, gymID: gym.gymID } : { gymName: 'Unknown Gym', gymID: gymId };
+    };
+
     // Render tab content based on the active tab
     const renderTabContent = () => {
         if (activeTab === 'createGym' || activeTab === 'editGym') {
@@ -279,13 +285,29 @@ const AdminPage = () => {
                     {loadingBookings ? (
                         <p>Loading bookings...</p>
                     ) : (
-                        <ul className="booking-list">
-                            {bookings.map((booking) => (
-                                <li key={booking.id}>
-                                    User: {booking.user}, Slot: {booking.slot}, Gym ID: {booking.gymId}
-                                </li>
-                            ))}
-                        </ul>
+                        <table className="booking-table">
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                    <th>Slot</th>
+                                    <th>Gym Name</th>
+                                    <th>Gym ID</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {bookings.map((booking) => {
+                                    const gymDetails = getGymDetailsById(booking.gymId);
+                                    return (
+                                        <tr key={booking.id}>
+                                            <td>{booking.user}</td>
+                                            <td>{booking.slot}</td>
+                                            <td>{gymDetails.gymName}</td>
+                                            <td>{gymDetails.gymID}</td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
                     )}
                 </div>
             );
@@ -296,7 +318,7 @@ const AdminPage = () => {
                     <ul className="gym-list">
                         {gyms.map((gym) => (
                             <li key={gym.gymID}>
-                                {gym.gymName} (Max Capacity: {gym.maxCap})
+                                {gym.gymName} (Gym ID: {gym.gymID}, Max Capacity: {gym.maxCap})
                                 <button className="edit-button" onClick={() => handleEditGym(gym.gymID)}>Edit</button>
                                 <button className="delete-button" onClick={() => handleDeleteGym(gym.gymID)}>Delete</button>
                             </li>
