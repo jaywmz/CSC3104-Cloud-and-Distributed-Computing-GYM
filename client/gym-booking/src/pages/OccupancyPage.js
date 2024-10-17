@@ -82,6 +82,7 @@ const OccupancyPage = () => {
                     {userRole === 'admin' && (
                         <Link to="/admin" className="btn btn-primary me-2">Go to Admin Dashboard</Link>
                     )}
+                    <button onClick={handleBack} className="btn btn-secondary me-2">Back</button> {/* Back Button */}
                     <button onClick={handleLogout} className="btn btn-danger">Logout</button>
                 </div>
             </header>
