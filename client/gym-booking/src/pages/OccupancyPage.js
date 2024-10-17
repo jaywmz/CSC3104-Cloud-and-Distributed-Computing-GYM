@@ -12,11 +12,17 @@ const OccupancyPage = () => {
 
     useEffect(() => {
         
-        const token = localStorage.getItem('role'); // Assuming you store the role in localStorage
+        const token = localStorage.getItem('token'); // Assuming you store the role in localStorage
         if (token) {
-        const decodedToken = jwtDecode(token); // Decode the token to get the username and role
-        setUsername(decodedToken.username); // Set the username from the token
-        setUserRole(decodedToken.role);
+            try {
+                const decodedToken = jwtDecode(token); // Decode the token to get the username and role
+                setUsername(decodedToken.username); // Set the username from the token
+                setUserRole(decodedToken.role);
+            } catch (error) {
+                console.error("Invalid token", error);
+                localStorage.removeItem('token'); // Clear invalid token
+                navigate('/login'); // Redirect to login
+            }
         }
         fetchOccupancy();
 
