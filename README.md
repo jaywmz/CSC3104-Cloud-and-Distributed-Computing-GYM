@@ -22,12 +22,15 @@ This section explains the overall organization of the project and how different 
 |       |-- booking.proto           // gRPC protocol definition for booking service
 |       |-- node_modules/           // Dependencies for the booking service
 |       |-- package.json            // Backend dependencies for booking service
+|       |-- .env                    // Environment variables for booking service
 |   
 |   |-- occupancy-service/          // Occupancy microservice (handling gym occupancy data)
+|       |-- mqttDummyPublisher.js   // MQTT dummy publisher for occupancy updates
 |       |-- server.js               // Main server code for occupancy handling (if needed)
 |       |-- occupancy.proto         // gRPC protocol definition for occupancy service
 |       |-- node_modules/           // Dependencies for occupancy service
 |       |-- package.json            // Backend dependencies for occupancy service
+|       |-- .env                    // Environment variables for occupancy service
 |   
 |   |-- user-service/               // User microservice for authentication
 |       |-- server.js               // Main server code for handling user authentication
@@ -35,6 +38,8 @@ This section explains the overall organization of the project and how different 
 |       |-- user.proto              // gRPC protocol definition for user service
 |       |-- node_modules/           // Dependencies for user service
 |       |-- package.json            // Backend dependencies for user service
+|       |-- .env                    // Environment variables for user service
+|
 |-- mosquitto_config/           // Mosquitto MQTT broker configuration files
 |   |-- mosquitto.conf          // Configuration for Mosquitto broker
 |
