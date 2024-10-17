@@ -35,6 +35,8 @@ This section explains the overall organization of the project and how different 
 |       |-- user.proto              // gRPC protocol definition for user service
 |       |-- node_modules/           // Dependencies for user service
 |       |-- package.json            // Backend dependencies for user service
+|-- mosquitto_config/           // Mosquitto MQTT broker configuration files
+|   |-- mosquitto.conf          // Configuration for Mosquitto broker
 |
 |-- .gitignore                      // Ignored files/folders for the entire project
 |-- README.md                       // Project documentation
