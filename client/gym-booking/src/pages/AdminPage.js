@@ -341,19 +341,41 @@ const AdminPage = () => {
             return (
                 <div className="form-box">
                     <h3>Manage Gyms</h3>
-                    <ul className="gym-list">
-                        {gyms.map((gym) => (
-                            <li key={gym.gymID}>
-                                {gym.gymName} (Gym ID: {gym.gymID}, Max Capacity: {gym.maxCap})
-                                <button className="edit-button" onClick={() => handleEditGym(gym.gymID)}>Edit</button>
-                                <button className="delete-button" onClick={() => handleDeleteGym(gym.gymID)}>Delete</button>
-                            </li>
-                        ))}
-                    </ul>
+                    {loadingGyms ? (
+                        <p>Loading gyms...</p>
+                    ) : (
+                        <table className="gym-table">
+                            <thead>
+                                <tr>
+                                    <th>Gym Name</th>
+                                    <th>Max Capacity</th>
+                                    <th>Gym ID</th>
+                                    <th className="actions-column">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {gyms.map((gym) => (
+                                    <tr key={gym.gymID}>
+                                        <td>{gym.gymName}</td>
+                                        <td>{gym.maxCap}</td>
+                                        <td>{gym.gymID}</td>
+                                        <td className="actions-column">
+                                            <button className="edit-button" onClick={() => handleEditGym(gym.gymID)}>
+                                                Edit
+                                            </button>
+                                            <button className="delete-button" onClick={() => handleDeleteGym(gym.gymID)}>
+                                                Delete
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    )}
                 </div>
             );
         }
-    };
+    }        
 
     return (
         <div className="admin-page-container">
