@@ -5,28 +5,40 @@ This section explains the overall organization of the project and how different 
 ```
 |-- client/
 |   |-- gym-booking/
-|       |-- src/               // React application code
-|       |-- package.json        // Frontend dependencies and scripts
+|       |-- public/                 // Public files like index.html, favicon, etc.
+|       |-- src/                    // React application source code
+|           |-- components/         // Reusable React components
+|           |-- css/                // CSS for the pages
+|           |-- pages/              // React pages (HomePage, LoginPage, etc.)
+|           |-- services/           // API service files (Axios or Fetch functions)
+|           |-- App.js              // Main app file (Routes and global styles)
+|       |-- package.json            // Frontend dependencies and scripts
+|       |-- .gitignore              // Ignored files/folders for the frontend
+|       |-- node_modules/           // Dependencies for the React app
 |
 |-- server/
-|   |-- booking-service/        // Booking microservice
-|       |-- server.js           // Main server code for handling bookings and gRPC
-|       |-- node_modules/       // Dependencies for the booking service
-|       |-- package.json        // Backend dependencies for booking service
+|   |-- booking-service/            // Booking microservice
+|       |-- server.js               // Main server code for handling bookings and gRPC
+|       |-- booking.proto           // gRPC protocol definition for booking service
+|       |-- node_modules/           // Dependencies for the booking service
+|       |-- package.json            // Backend dependencies for booking service
 |   
-|   |-- occupancy-service/      // Occupancy microservice (placeholder for other service logic)
-|       |-- server.js           // Main server code for occupancy (if needed)
-|       |-- node_modules/       // Dependencies for occupancy service
-|       |-- package.json        // Backend dependencies for occupancy service
+|   |-- occupancy-service/          // Occupancy microservice (handling gym occupancy data)
+|       |-- server.js               // Main server code for occupancy handling (if needed)
+|       |-- occupancy.proto         // gRPC protocol definition for occupancy service
+|       |-- node_modules/           // Dependencies for occupancy service
+|       |-- package.json            // Backend dependencies for occupancy service
 |   
-|   |-- user-service/           // User microservice
-|       |-- server.js           // Main server code for handling user authentication and gRPC
-|       |-- routes/             // API routes for user service (e.g., register, login)
-|       |-- user.proto          // gRPC protocol definition for user service
-|       |-- node_modules/       // Dependencies for user service
-|       |-- package.json        // Backend dependencies for user service
+|   |-- user-service/               // User microservice for authentication
+|       |-- server.js               // Main server code for handling user authentication
+|       |-- routes/                 // API routes for user service (register, login, etc.)
+|       |-- user.proto              // gRPC protocol definition for user service
+|       |-- node_modules/           // Dependencies for user service
+|       |-- package.json            // Backend dependencies for user service
 |
-|-- .gitignore                  // Ignored files/folders for git
+|-- .gitignore                      // Ignored files/folders for the entire project
+|-- README.md                       // Project documentation
+|-- docker-compose.yml              // Docker Compose file for managing multiple microservices
 ```
 # Steps to Set Up and Run the Project:
 # 1. Install Dependencies:
