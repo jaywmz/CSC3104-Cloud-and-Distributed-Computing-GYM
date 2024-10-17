@@ -32,7 +32,7 @@ const OccupancyPage = () => {
         }, 5000); // Fetch occupancy every 5 seconds
 
         return () => clearInterval(intervalId); // Cleanup interval on component unmount
-    }, []);
+    }, [navigate]);
 
     const fetchOccupancy = async () => {
         try {
