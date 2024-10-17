@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import '../css/AdminPage.css'; // Link to external CSS for styling
-import { getAllBookings } from '../services/occupancyService';
+import { getBookings, deleteBooking } from '../services/bookingService'; // Import deleteBooking service
 import { useNavigate } from 'react-router-dom';
 
 const AdminPage = () => {
@@ -43,7 +43,7 @@ const AdminPage = () => {
         const fetchBookings = async () => {
             setLoadingBookings(true);
             try {
-                const bookings = await getAllBookings(); // Fetch bookings using the middleware
+                const bookings = await getBookings(); // Fetch bookings using the middleware
                 setBookings(bookings); // Set the bookings in state
             } catch (error) {
                 setError('Error fetching bookings.');
@@ -179,6 +179,21 @@ const AdminPage = () => {
         }
     };
 
+    // Handle booking deletion for admin
+    const handleDeleteBooking = async (bookingId) => {
+        const confirmDelete = window.confirm("Are you sure you want to delete this booking?");
+        if (!confirmDelete) return;
+
+        try {
+            await deleteBooking(bookingId);
+            setBookings((prevBookings) => prevBookings.filter((booking) => booking.id !== bookingId));
+            alert('Booking deleted successfully.');
+        } catch (error) {
+            console.error('Error deleting booking:', error);
+            alert('Failed to delete booking.');
+        }
+    };
+
     // Handle logout
     const handleLogout = () => {
         localStorage.removeItem('token');
@@ -293,6 +308,7 @@ const AdminPage = () => {
                                     <th>Date</th>
                                     <th>Gym Name</th>
                                     <th>Gym ID</th>
+                                    <th>Actions</th> {/* Added Actions Column */}
                                 </tr>
                             </thead>
                             <tbody>
@@ -305,6 +321,14 @@ const AdminPage = () => {
                                             <td>{new Date(booking.date).toLocaleDateString()}</td> {/* Format date */}
                                             <td>{gymDetails.gymName}</td>
                                             <td>{gymDetails.gymID}</td>
+                                            <td>
+                                                <button
+                                                    className="delete-button"
+                                                    onClick={() => handleDeleteBooking(booking.id)}
+                                                >
+                                                    Delete
+                                                </button>
+                                            </td>
                                         </tr>
                                     );
                                 })}

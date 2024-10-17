@@ -67,13 +67,17 @@ function getUserFromToken(token) {
         console.error('Error fetching user from token:', error);
         return reject({
           code: grpc.status.INTERNAL,
-          details: 'Error fetching user bookings',
+          details: 'Error fetching user details',
         });
       }
-      resolve(response.username);
+      resolve({
+        username: response.username,
+        role: response.role // Ensure role is part of the response
+      });
     });
   });
 }
+
 
 // Booking route with gRPC call to validate user and saving to MongoDB
 app.post('/api/bookings', (req, res) => {
@@ -321,15 +325,16 @@ async function deleteBooking(call, callback) {
     // Extract the token from the metadata
     const token = call.metadata.get('authorization')[0];
 
-    // Decode the token to get the user
-    const user = await getUserFromToken(token);
+    // Decode the token to get the user and role
+    const { username: user, role } = await getUserFromToken(token);
 
     const db = await connectDB();
     const bookingsCollection = db.collection('bookings');
     const bookingsQuotaCollection = db.collection('bookingsQuota');
     const booking = await bookingsCollection.findOne({ id: call.request.id });
 
-    if (booking.user !== user) {
+    // Allow admins to delete any booking, bypassing ownership check
+    if (role !== 'admin' && booking.user !== user) {
       callback({
         code: grpc.status.PERMISSION_DENIED,
         details: 'You are not authorized to delete this booking',
@@ -358,6 +363,7 @@ async function deleteBooking(call, callback) {
     });
   }
 };
+
 
 // Update a booking
 async function updateBooking(call, callback) {
