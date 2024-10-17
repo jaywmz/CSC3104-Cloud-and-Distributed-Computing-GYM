@@ -48,11 +48,6 @@ const OccupancyPage = () => {
         window.location.href = '/';
     };
 
-    // Back button to navigate to /user
-    const handleBack = () => {
-        navigate('/user');
-    };
-
     function GymList() {
         if (!occupancy || occupancy.length === 0) {
             return <p className="no-gyms">No gyms available.</p>;
