@@ -2,16 +2,23 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import '../css/OccupancyPage.css';
 import { getOccupancy } from '../services/occupancyService';
+import {jwtDecode} from 'jwt-decode'; // Import jwtDecode for decoding token
 
 const OccupancyPage = () => {
     const [occupancy, setOccupancy] = useState([]);
     const [userRole, setUserRole] = useState(null);
+    const [username, setUsername] = useState(''); // New state for storing the username
     const navigate = useNavigate();
 
     useEffect(() => {
+        
+        const token = localStorage.getItem('role'); // Assuming you store the role in localStorage
+        if (token) {
+        const decodedToken = jwtDecode(token); // Decode the token to get the username and role
+        setUsername(decodedToken.username); // Set the username from the token
+        setUserRole(decodedToken.role);
+        }
         fetchOccupancy();
-        const role = localStorage.getItem('role'); // Assuming you store the role in localStorage
-        setUserRole(role);
 
         // Polling the backend every few seconds to fetch updated occupancy data
         const intervalId = setInterval(() => {
@@ -76,16 +83,30 @@ const OccupancyPage = () => {
 
     return (
         <div className="occupancy-page">
-            <header className="header">
-                <h2>Gym Occupancy</h2>
-                <div className="button-group">
-                    {userRole === 'admin' && (
-                        <Link to="/admin" className="btn btn-primary me-2">Go to Admin Dashboard</Link>
-                    )}
-                    <button onClick={handleBack} className="btn btn-secondary me-2">Back</button> {/* Back Button */}
-                    <button onClick={handleLogout} className="btn btn-danger">Logout</button>
+            {/* Navbar like in BookingPage */}
+            <nav className="navbar navbar-expand-lg navbar-light bg-light mb-3 shadow-sm p-2">
+                <div className="container-fluid">
+                    <a className="navbar-brand" href="/user">GymKube</a>
+                    <ul className="navbar-nav me-auto">
+                        <li className="nav-item"><Link className="nav-link" to="/bookings">Bookings</Link></li>
+                        <li className="nav-item"><Link className="nav-link" to="/occupancy">Gyms</Link></li>
+                        {userRole === 'admin' && (
+                            <li className="nav-item"><Link className="nav-link" to="/admin">Admin Dashboard</Link></li>
+                        )}
+                    </ul>
+                    <div className="collapse navbar-collapse" id="navbarNav">
+                        <ul className="navbar-nav ms-auto">
+                            <li className="nav-item">
+                                {/* Display the username here */}
+                                <span className="navbar-text me-3">Logged in as: <strong>{username}</strong></span>
+                            </li>
+                            <li className="nav-item">
+                                <button onClick={handleLogout} className="btn btn-gradient btn-sm">Logout</button>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
-            </header>
+            </nav>
 
             {/* Gym List */}
             <GymList />
