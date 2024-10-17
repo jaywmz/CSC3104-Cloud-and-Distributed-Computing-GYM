@@ -39,6 +39,26 @@ const Unauthorized = () => {
   );
 };
 
+// Token expired component
+const TokenExpired = () => {
+  const navigate = useNavigate();
+
+  const handleLogin = () => {
+    navigate('/login'); // Navigate to the login page
+  };
+
+  return (
+    <div style={{ textAlign: 'center', marginTop: '50px' }}>
+      <h1>Session Expired</h1>
+      <p>Your session has expired. Please log in again.</p>
+      <a onClick={handleLogin} style={{ cursor: 'pointer', color: 'blue', textDecoration: 'underline' }}>
+        Go to Login
+      </a>
+    </div>
+  );
+};
+
+
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const token = localStorage.getItem('token'); // Retrieve token from localStorage
   const [userRole, setUserRole] = useState(null); // Store user role from token
@@ -54,7 +74,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   // If no token or the token is expired, display 401 Unauthorized message
   if (!token || isTokenExpired(token)) {
     localStorage.removeItem('token'); // Remove expired token
-    return <Unauthorized />;  // Display 401 Unauthorized message
+    return <TokenExpired />;  // Display 401 Unauthorized message
   }
 
   // If the user's role is not in the list of allowedRoles, display 401 Unauthorized message
