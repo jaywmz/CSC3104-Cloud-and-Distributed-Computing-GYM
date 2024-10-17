@@ -123,7 +123,6 @@ h2 {
 
 .card-title {
     transition: color 0.3s ease;
-    display: inline;
 }
 
 .card-title:hover {
