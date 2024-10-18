@@ -102,12 +102,12 @@ const BookingPage = () => {
     setLoading(true);
     try {
       await updateBooking(editingBooking.id, newBooking);
-      setMessage('Booking updated successfully!');
       setEditingBooking(null); // Exit edit mode
       await fetchUserBookings(); // Refresh bookings after update
       setNewBooking({ date: '', slot: '', gymId: '' }); // Reset the form
+      setMessage('Booking updated successfully!');
     } catch (error) {
-      setMessage('Failed to update booking.');
+      setMessage(error.message);
     } finally {
       setLoading(false);
     }
@@ -170,8 +170,8 @@ const BookingPage = () => {
       setLoading(true);
       await createBooking(newBooking);
       await fetchUserBookings(); // Refresh the bookings list after submission
-      setMessage('Booking created successfully!');
       setNewBooking({date: '', slot: '', gymId: '' }); // Reset the form
+      setMessage('Booking created successfully!');
     } catch (error) {
       setMessage(error.message);
     } finally {

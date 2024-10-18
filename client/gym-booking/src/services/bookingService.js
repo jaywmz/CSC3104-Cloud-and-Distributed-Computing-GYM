@@ -91,8 +91,15 @@ export const updateBooking = async (bookingId, updatedData) => {
     });
     return response.data;
   } catch (error) {
-    console.error('Error updating booking:', error.response || error.message);
-    throw error;
+    if (error.response && error.response.status === 409) {
+      // Handle duplicate booking error
+      throw new Error('Duplicate booking: You already have a booking at the same time and gym.');
+    }else if ( error.response && error.response.status === 429){
+      throw new Error('Failed to create booking: Time slot is fully booked. Please choose another slot.')
+    } else {
+      console.error('Error updating booking:', error.response || error.message);
+      throw error;
+    }
   }
 };
 

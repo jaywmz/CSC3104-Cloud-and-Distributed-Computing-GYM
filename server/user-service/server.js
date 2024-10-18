@@ -142,7 +142,7 @@ function getUserFromToken(call, callback) {
       }
       
       // If token is valid, return the username
-      callback(null, { username: user.username });
+      callback(null, { username: user.username, role: user.role });
     });
   } catch (error) {
     console.error('Error during token verification:', error);
