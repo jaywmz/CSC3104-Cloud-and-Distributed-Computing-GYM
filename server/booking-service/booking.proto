@@ -30,6 +30,7 @@ message booking {
     string date = 3;
     string slot = 4;
     int32 gymId = 5;
+    string role = 6;
 }
 
 message bookingList {

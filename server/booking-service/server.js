@@ -72,7 +72,7 @@ function getUserFromToken(token) {
       }
       resolve({
         username: response.username,
-        role: response.role // Ensure role is part of the response
+        role: response.role
       });
     });
   });
@@ -226,7 +226,7 @@ async function getUserBookings(call, callback) {
 
     const db = await connectDB();
     const bookingsCollection = db.collection('bookings');
-    const bookings = await bookingsCollection.find({ user: user }).toArray();
+    const bookings = await bookingsCollection.find({ user: user.username }).toArray();
     callback(null, { bookings });
   } catch (error) {
     callback({
@@ -276,7 +276,7 @@ async function createBooking(call, callback) {
 
     // Check for duplicate booking (same user, gymId, and slot)
     const duplicateBooking = await bookingsCollection.findOne({
-      user: user,
+      user: user.username,
       date: date,
       gymId: parseInt(gymId), // Make sure gymId is an integer
       slot: slot,
@@ -291,7 +291,8 @@ async function createBooking(call, callback) {
     }
 
     const booking = call.request;
-    booking.user = user;
+    booking.user = user.username;
+    booking.role = user.role;
     booking.id = Math.floor(Math.random() * 1000); // Generate a random ID
     booking.gymId = parseInt(booking.gymId); // Convert gymId string to integer
     bookingsCollection.insertOne(booking);
@@ -326,7 +327,7 @@ async function deleteBooking(call, callback) {
     const token = call.metadata.get('authorization')[0];
 
     // Decode the token to get the user and role
-    const { username: user, role } = await getUserFromToken(token);
+    const user  = await getUserFromToken(token);
 
     const db = await connectDB();
     const bookingsCollection = db.collection('bookings');
@@ -334,7 +335,7 @@ async function deleteBooking(call, callback) {
     const booking = await bookingsCollection.findOne({ id: call.request.id });
 
     // Allow admins to delete any booking, bypassing ownership check
-    if (role !== 'admin' && booking.user !== user) {
+    if (user.role !== 'admin' && booking.user !== user.username) {
       callback({
         code: grpc.status.PERMISSION_DENIED,
         details: 'You are not authorized to delete this booking',
@@ -368,7 +369,6 @@ async function deleteBooking(call, callback) {
 // Update a booking
 async function updateBooking(call, callback) {
   try {
-    // TODO: check if booking already exists when updating a different booking
 
     const token = call.metadata.get('authorization')[0]; // Get token from metadata
 
@@ -379,6 +379,24 @@ async function updateBooking(call, callback) {
     const bookingsCollection = db.collection('bookings');
     const bookingsQuotaCollection = db.collection('bookingsQuota');
     const { id, date, slot, gymId } = call.request;
+
+    // Check if new booking is a duplicate of existing booking by user
+    const duplicateBooking = await bookingsCollection.findOne({ user: user.username, date: date, gymId: parseInt(gymId), slot: slot });
+    if (duplicateBooking) {
+      return callback({
+        code: grpc.status.ALREADY_EXISTS,
+        details: 'Duplicate booking: You already have a booking at the same time and gym.',
+      });
+    }
+
+    // Check if new slot quota by new gym booking has exceeded 10
+    const checkQuota = await bookingsQuotaCollection.findOne({ gymId: parseInt(gymId), date: date });
+    if (checkQuota && checkQuota[slot] >= 10) {
+      return callback({
+        code: grpc.status.RESOURCE_EXHAUSTED,
+        details: 'Slot quota exceeded. Please choose another slot.',
+      });
+    }
 
     // Find the booking by id
     const booking = await bookingsCollection.findOne({ id: parseInt(id) });
@@ -392,7 +410,7 @@ async function updateBooking(call, callback) {
     }
 
     // Check if the user making the request owns the booking
-    if (booking.user !== user) {
+    if (booking.user !== user.username) {
       return callback({
         code: grpc.status.PERMISSION_DENIED,
         details: 'You are not authorized to update this booking',
@@ -445,8 +463,14 @@ app.put('/api/bookings/update/:id', (req, res) => {
 
   bookingClient.UpdateBooking({ id, date, slot, gymId }, token, (error, booking) => {
     if (error) {
-      console.error('Error updating booking via gRPC:', error);
-      return res.status(500).send('Failed to update booking');
+      if (error.code === grpc.status.ALREADY_EXISTS) {
+        return res.status(409).send({ details: error.details }); // Ensure return to avoid sending multiple responses
+      }
+      if (error.code === grpc.status.RESOURCE_EXHAUSTED) {
+        return res.status(429).send({ details: error.details }); // Ensure return
+      }
+      console.error('Error creating booking via gRPC:', error);
+      return res.status(500).send('Failed to create booking'); // Ensure return
     }
     res.status(200).json(booking);
   });
