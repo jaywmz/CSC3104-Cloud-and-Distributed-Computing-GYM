@@ -16,6 +16,8 @@ const BookingPage = () => {
   const [bookingDetails, setBookingDetails] = useState({});
   const [role, setRole] = useState('');
   const [dateOptions, setDateOptions] = useState([]);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deleteBookingDetails, setDeleteBookingDetails] = useState({});
 
   // Define available timeslots
   const timeslots = [
@@ -79,18 +81,26 @@ const BookingPage = () => {
     }
   };
 
-  const handleDeleteBooking = async (id) => {
+  const openDeleteModal = (details) => {
+    const gymName = gyms.find((g) => g.gymID === parseInt(details.gymId, 10)).gymName;
+    details.gymName = gymName;
+    setDeleteBookingDetails(details); 
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
     setLoading(true);
     try {
       setNewBooking({ date: '', slot: '', gymId: '' }); // Reset the form
       setEditingBooking(null); // Exit edit mode
-      await deleteBooking(id);
+      await deleteBooking(deleteBookingDetails.id);
       await fetchUserBookings(); // Refresh the bookings list after deletion
       setMessage('Booking deleted successfully!');
     } catch (error) {
       setMessage('Failed to delete booking.');
     } finally {
       setLoading(false);
+      setIsDeleteModalOpen(false);
     }
   };
 
@@ -154,6 +164,36 @@ const BookingPage = () => {
               <div className="modal-footer">
                 <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
                 <button type="button" className="btn btn-primary" onClick={onConfirm}>Confirm Booking</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  };
+
+  const DeleteModal = ({ isOpen, details, onClose, onConfirm }) => {
+    if (!isOpen) return null;
+
+    return (
+      <>
+        <div className="modal-backdrop"></div>
+        <div className="modal show d-block" tabIndex="-1">
+          <div className="modal-dialog">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Confirm Deletion</h5>
+                <button type="button" className="btn-close" onClick={onClose}></button>
+              </div>
+              <div className="modal-body">
+                <p>Are you sure you want to delete this booking?</p>
+                <p><strong>Date:</strong> {details.date}</p>
+                <p><strong>Time Slot:</strong> {details.slot}</p>
+                <p><strong>Gym:</strong> {details.gymName}</p>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={onClose}>Close</button>
+                <button type="button" className="btn btn-danger" onClick={onConfirm}>Delete Booking</button>
               </div>
             </div>
           </div>
@@ -305,6 +345,12 @@ const BookingPage = () => {
         onConfirm={confirmBooking}
       />
 
+      <DeleteModal
+        isOpen={isDeleteModalOpen}
+        details={deleteBookingDetails}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleConfirmDelete}
+      />
 
       {/* User's Bookings */}
       <div className="card mb-3 shadow-sm rounded">
@@ -321,7 +367,12 @@ const BookingPage = () => {
                 </div>
                 <div>
                   <button className="btn btn-warning btn-sm me-1" onClick={() => handleEditBooking(booking)}>Edit</button>
-                  <button className="btn btn-danger btn-sm" onClick={() => handleDeleteBooking(booking.id)}>Delete</button>
+                  <button
+                    className="btn btn-danger btn-sm"
+                    onClick={() => openDeleteModal({ id: booking.id, date: booking.date, slot: booking.slot, gymId: booking.gymId })}
+                  >
+                    Delete
+                  </button>
                 </div>
               </li>
             ))}
