@@ -82,6 +82,8 @@ const BookingPage = () => {
   const handleDeleteBooking = async (id) => {
     setLoading(true);
     try {
+      setNewBooking({ date: '', slot: '', gymId: '' }); // Reset the form
+      setEditingBooking(null); // Exit edit mode
       await deleteBooking(id);
       await fetchUserBookings(); // Refresh the bookings list after deletion
       setMessage('Booking deleted successfully!');
