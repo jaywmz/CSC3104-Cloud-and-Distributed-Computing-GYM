@@ -60,7 +60,7 @@ const OccupancyPage = () => {
         return (
             <div className="gym-list row">
                 {occupancy.map((gym, index) => (
-                    <Link to={`/gym/${gym.gymID}`} className="gym-link col">
+                    <Link to={`/gym/${gym.gymID}`} className="gym-link">
                         <div key={index} className="gym-box">
                             <div className="card-body">
                                 <label id="gym-name">{gym.gymName} occupancy:</label>
