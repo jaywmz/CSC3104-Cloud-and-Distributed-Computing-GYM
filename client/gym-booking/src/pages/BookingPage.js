@@ -172,7 +172,7 @@ const BookingPage = () => {
       setLoading(true);
       await createBooking(newBooking);
       await fetchUserBookings(); // Refresh the bookings list after submission
-      setNewBooking({date: '', slot: '', gymId: '' }); // Reset the form
+      setNewBooking({ date: '', slot: '', gymId: '' }); // Reset the form
       setMessage('Booking created successfully!');
     } catch (error) {
       setMessage(error.message);
@@ -181,6 +181,11 @@ const BookingPage = () => {
       setIsConfirmModalOpen(false);
     }
   };
+
+  const handleCancelEdit = () => {
+    setEditingBooking(null);
+    setNewBooking({ date: '', slot: '', gymId: '' });
+  }
 
   return (
     <div className="booking-page container mt-3">
@@ -279,9 +284,16 @@ const BookingPage = () => {
                 ))}
               </select>
             </div>
-            <button type="submit" className="btn btn-gradient btn-sm w-100" disabled={loading}>
-              {editingBooking ? 'Update Booking' : 'Create Booking'}
-            </button>
+            <div className="d-flex justify-content-between">
+              <button type="submit" className="btn btn-gradient btn-sm w-100 me-2" disabled={loading}>
+                {editingBooking ? 'Update Booking' : 'Create Booking'}
+              </button>
+              {editingBooking && (
+                <button type="button" className="btn btn-secondary btn-sm w-100" onClick={handleCancelEdit}>
+                  Cancel Edit
+                </button>
+              )}
+            </div>
           </form>
         </div>
       </div>
