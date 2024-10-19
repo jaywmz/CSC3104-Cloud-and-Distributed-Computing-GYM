@@ -13,7 +13,7 @@ app.use(cors());
 app.use(bodyParser.json());
 
 // MongoDB connection string
-const { MongoClient } = require('mongodb');
+const { MongoClient, ReturnDocument } = require('mongodb');
 const uri = process.env.MONGO_URI || "mongodb+srv://lichtwx:LzKVEOYBsPgSETjX@cluster0.obfql.mongodb.net/?retryWrites=true&w=majority";
 
 // Middleware to connect to MongoDB with error handling
@@ -254,61 +254,57 @@ async function getGymBookings(call, callback) {
 // Create a new booking
 async function createBooking(call, callback) {
   try {
-    // Extract the token from the metadata 
-    const token = call.metadata.get('authorization')[0]; // Get token from metadata
-
-    // Decode the token to get the user
+    const token = call.metadata.get('authorization')[0];
     const user = await getUserFromToken(token);
 
     const db = await connectDB();
     const bookingsCollection = db.collection('bookings');
     const bookingsQuotaCollection = db.collection('bookingsQuota');
     const { date, slot, gymId } = call.request;
+    const gymIdInt = parseInt(gymId);
 
-    // Check if slot quota has exceeded 10
-    const checkQuota = await bookingsQuotaCollection.findOne({ gymId: parseInt(gymId), date: date });
-    if (checkQuota && checkQuota[slot] >= 10) {
-      return callback({
-        code: grpc.status.RESOURCE_EXHAUSTED,
-        details: 'Slot quota exceeded. Please choose another slot.',
-      });
-    }
-
-    // Check for duplicate booking (same user, gymId, and slot)
+    // Check for duplicate booking
     const duplicateBooking = await bookingsCollection.findOne({
       user: user.username,
       date: date,
-      gymId: parseInt(gymId), // Make sure gymId is an integer
+      gymId: gymIdInt,
       slot: slot,
     });
 
     if (duplicateBooking) {
-      // If a duplicate booking is found, return an error response
       return callback({
         code: grpc.status.ALREADY_EXISTS,
         details: 'Duplicate booking: You already have a booking at the same time and gym.',
       });
     }
 
-    const booking = call.request;
-    booking.user = user.username;
-    booking.role = user.role;
-    booking.id = Math.floor(Math.random() * 1000); // Generate a random ID
-    booking.gymId = parseInt(booking.gymId); // Convert gymId string to integer
-    bookingsCollection.insertOne(booking);
-
-    // Check if slot quota exists by date and gymId
-    const quota = await bookingsQuotaCollection.findOne({ gymId: booking.gymId, date: booking.date});
-    // if exists, check if slot exists in this date and gymId
-    if (quota) {
-      if (quota[booking.slot]) {
-        await bookingsQuotaCollection.updateOne({ gymId: booking.gymId, date: booking.date }, { $inc: { [booking.slot]: 1 } });
-      } else {
-        await bookingsQuotaCollection.updateOne({ gymId: booking.gymId, date: booking.date }, { $set: { [booking.slot]: 1 } });
+    // Use findOneAndUpdate to check and update the quota atomically
+    const quotaUpdate = await bookingsQuotaCollection.findOneAndUpdate(
+      { gymId: gymIdInt, date: date },
+      {
+        $inc: { [slot]: 1 },
+      },
+      {
+        upsert: true, // Insert if not found
+        returnOriginal: false,
       }
-    } else {
-      await bookingsQuotaCollection.insertOne({ gymId: booking.gymId, date: booking.date, [booking.slot]: 1 });
-    };
+    );
+
+    if (quotaUpdate[slot] > 10) {
+      // If slot quota exceeded, roll back the increment
+      await bookingsQuotaCollection.updateOne(
+        { gymId: gymIdInt, date: date },
+        { $inc: { [slot]: -1 } }
+      );
+      return callback({
+        code: grpc.status.RESOURCE_EXHAUSTED,
+        details: 'Slot quota exceeded. Please choose another slot.',
+      });
+    }
+
+    // Proceed to create the booking
+    const booking = { ...call.request, user: user.username, gymId: gymIdInt, role: user.role, id: Math.floor(Math.random() * 1000) };
+    await bookingsCollection.insertOne(booking);
 
     callback(null, booking);
   } catch (error) {
