@@ -29,27 +29,28 @@ const GymPage = () => {
     };
 
     // Handles updating of gym occupancy, whether checking in or checking out
-    const handleUpdate = async (change, gymID) => {
+    const handleUpdate = async (inOrOut, gymID) => {
         try {
             const token = localStorage.getItem('token');
             if (!token) {
                 window.location.href = '/login';  // Redirect to the login page
             }
             
-            if (change > 0) {
+            if (inOrOut === 1) {
                 let response = await checkIn(token, gymID);
                 console.log(response);
                 if (response === "User has already checked-in to a gym.") {
-                    document.getElementById("message").innerHTML = "User has already checked-in to a gym.";
+                    document.getElementById("message").innerHTML = response;
                 }
                 else {
                     window.location.href = '/occupancy';
                 }
             }
-            else if (change < 0) {
+            else {
                 let response = await checkOut(token, gymID);
+                console.log(response);
                 if (response === "User has not checked-in to this gym before.") {
-                    document.getElementById("message").innerHTML = "User has not checked-in to this gym before.";
+                    document.getElementById("message").innerHTML = response;
                 }
                 else {
                     window.location.href = '/occupancy';
@@ -59,8 +60,6 @@ const GymPage = () => {
         catch (err) {
             console.error(err);
         }
-
-        
     };
 
     // Handle logout
@@ -77,7 +76,7 @@ const GymPage = () => {
 
             <div id="buttonGroup">
                 <button onClick={() => handleUpdate(1, gym.gymID)} id="checkInBtn">Check in</button>
-                <button onClick={() => handleUpdate(-1, gym.gymID)} id="checkOutBtn">Check out</button>
+                <button onClick={() => handleUpdate(0, gym.gymID)} id="checkOutBtn">Check out</button>
             </div>
 
             <p id={"message"}></p>

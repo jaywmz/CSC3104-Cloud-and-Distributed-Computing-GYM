@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import '../css/AdminPage.css'; // Link to external CSS for styling
 import { getBookings, deleteBooking } from '../services/bookingService'; // Import deleteBooking service
+import { getAllGyms, createGym, deleteGym } from '../services/occupancyService'; // Import occupancy service calls 
 import { useNavigate } from 'react-router-dom';
 
 const AdminPage = () => {
@@ -27,8 +28,8 @@ const AdminPage = () => {
     const fetchGyms = async () => {
         setLoadingGyms(true);
         try {
-            const response = await fetch('http://localhost:5003/api/get-gyms'); // Replace with your backend route
-            const data = await response.json();
+            const response = await getAllGyms(); // Replace with your backend route
+            const data = response;
             setGyms(data); // Set the gyms in state
         } catch (error) {
             setError('Error fetching gyms.');
@@ -64,15 +65,9 @@ const AdminPage = () => {
         }
 
         try {
-            const response = await fetch('http://localhost:5003/api/create-gym', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ gymName, maxCap }),
-            });
+            const response = await createGym(gymName, maxCap);
 
-            if (response.ok) {
+            if (response.status === 200) {
                 alert('Gym created successfully!');
                 setGymName('');
                 setMaxCap('');
@@ -134,11 +129,9 @@ const AdminPage = () => {
         if (!confirmDelete) return;
 
         try {
-            const response = await fetch(`http://localhost:5003/api/delete-gym/${gymID}`, {
-                method: 'DELETE',
-            });
+            const response = await deleteGym(gymID);
 
-            if (response.ok) {
+            if (response.status === 200) {
                 alert('Gym deleted successfully!');
                 fetchGyms(); // Refresh gyms list after deletion
             } else {

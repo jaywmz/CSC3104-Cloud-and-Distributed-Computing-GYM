@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import '../css/OccupancyPage.css';
-import { getOccupancy } from '../services/occupancyService';
+import { getAllGyms } from '../services/occupancyService';
 import {jwtDecode} from 'jwt-decode'; // Import jwtDecode for decoding token
 
 const OccupancyPage = () => {
@@ -11,7 +11,6 @@ const OccupancyPage = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        
         const token = localStorage.getItem('token'); // Assuming you store the role in localStorage
         if (token) {
             try {
@@ -25,7 +24,7 @@ const OccupancyPage = () => {
             }
         }
         fetchOccupancy();
-
+        
         // Polling the backend every few seconds to fetch updated occupancy data
         const intervalId = setInterval(() => {
             fetchOccupancy();
@@ -36,7 +35,7 @@ const OccupancyPage = () => {
 
     const fetchOccupancy = async () => {
         try {
-            const data = await getOccupancy();
+            const data = await getAllGyms();
             setOccupancy(Array.isArray(data) ? data : []);
         } catch (error) {
             console.error("Error fetching occupancy data: ", error);

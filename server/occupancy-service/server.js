@@ -110,30 +110,30 @@ mqttClient.on('message', async (topic, message) => {
 });
 
 // Define a function to fetch all bookings from the BookingService via gRPC
-function getAllBookingsFromBookingService() {
-    return new Promise((resolve, reject) => {
-      bookingClient.GetAllBookings({}, (error, response) => {
-        if (error) {
-          console.error('Error fetching bookings from BookingService:', error);
-          return reject('Failed to fetch bookings.');
-        }
-        resolve(response.bookings);
-      });
-    });
-  }
+// function getAllBookingsFromBookingService() {
+//     return new Promise((resolve, reject) => {
+//         bookingClient.GetAllBookings({}, (error, response) => {
+//             if (error) {
+//             console.error('Error fetching bookings from BookingService:', error);
+//             return reject('Failed to fetch bookings.');
+//             }
+//             resolve(response.bookings);
+//         });
+//     });
+// }
 
 // Define a gRPC method in the occupancy service for fetching all bookings
-async function getAllBookings(call, callback) {
-    try {
-      const bookings = await getAllBookingsFromBookingService();  // Call the booking service via gRPC
-      callback(null, { bookings });
-    } catch (error) {
-      callback({
-        code: grpc.status.INTERNAL,
-        details: 'Error fetching bookings from BookingService',
-      });
-    }
-  }
+// async function getAllBookings(call, callback) {
+//     try {
+//         const bookings = await getAllBookingsFromBookingService();  // Call the booking service via gRPC
+//         callback(null, { bookings });
+//     } catch (error) {
+//         callback({
+//             code: grpc.status.INTERNAL,
+//             details: 'Error fetching bookings from BookingService',
+//         });
+//     }
+// }
 
 // Function to call user gRPC to convert token to user
 function getUserFromToken(token) {
@@ -162,20 +162,23 @@ async function findCheckIn(username) {
     }
 };
 
-// Add this route to serve getAllBookings request via the Occupancy Service
-app.get('/api/get-all-bookings', async (req, res) => {
-    try {
-        const bookings = await getAllBookingsFromBookingService(); // This calls your gRPC service
-        res.status(200).json(bookings);
-    } catch (error) {
-        console.error('Error fetching bookings:', error);
-        res.status(500).send('Failed to fetch bookings.');
-    }
-});
+/*
+ *  API FUNCTIONS
+ */
 
+// Add this route to serve getAllBookings request via the Occupancy Service
+// app.get('/api/get-all-bookings', async (req, res) => {
+//     try {
+//         const bookings = await getAllBookingsFromBookingService(); // This calls your gRPC service
+//         res.status(200).json(bookings);
+//     } catch (error) {
+//         console.error('Error fetching bookings:', error);
+//         res.status(500).send('Failed to fetch bookings.');
+//     }
+// });
 
 // Get occupancy by counting number of checked-in users in every gym
-app.get('/api/occupancy', async (req, res) => {
+app.get('/api/all-gyms', async (req, res) => {
     try {
         const cursor = await gymsCollection.find();
         let gyms = [];
@@ -280,7 +283,10 @@ app.post('/api/check-out', async (req, res) => {
 
 // Create Gym
 app.post('/api/create-gym', async (req, res) => {
-    const { gymName, maxCap } = req.body;
+    const gymName = req.body[0];
+    const maxCap = req.body[1];
+
+    console.log(req.body);
 
     if (!gymName || !maxCap) {
         return res.status(400).json({ message: 'All fields are required' });
@@ -306,8 +312,63 @@ app.post('/api/create-gym', async (req, res) => {
     }
 });
 
+// Edit Gym
+app.put('/api/edit-gym/:gymID', async (req, res) => {
+    const gymID = parseInt(req.params.gymID);
+    const { gymName, maxCap } = req.body;
 
+    if (!gymName || !maxCap) {
+        return res.status(400).json({ message: 'All fields are required' });
+    }
 
+    try {
+        const updateResult = await gymsCollection.updateOne(
+            { gymID: gymID },
+            { $set: { gymName: gymName, maxCap: parseInt(maxCap) } }
+        );
+
+        if (updateResult.modifiedCount === 0) {
+            return res.status(404).json({ message: 'Gym not found' });
+        }
+
+        console.log(`Gym updated with gymID: ${gymID}`);
+        return res.sendStatus(200);
+    } catch (err) {
+        console.error(`Error updating gym: ${err}`);
+        return res.status(500).json({ message: 'Server error. Failed to update gym' });
+    }
+});
+
+// Delete Gym
+app.delete('/api/delete-gym', async (req, res) => {
+    const gymID = parseInt(req.query['gymID']);
+
+    try {
+        // First, delete all equipment associated with this gymID
+        const deleteEquipmentResult = await equipmentCollection.deleteMany({ gymID: gymID });
+
+        if (deleteEquipmentResult.deletedCount === 0) {
+            console.log(`No equipment found for gymID: ${gymID}`);
+        } else {
+            console.log(`Deleted ${deleteEquipmentResult.deletedCount} pieces of equipment associated with gymID: ${gymID}`);
+        }
+
+        // Then delete the gym
+        const deleteGymResult = await gymsCollection.deleteOne({ gymID: gymID });
+
+        console.log(deleteGymResult);
+
+        if (deleteGymResult.deletedCount === 0) {
+            return res.status(404).json({ message: 'Gym not found' });
+        }
+
+        console.log(`Gym deleted with gymID: ${gymID}`);
+        return res.status(200).json({ message: 'Gym and associated equipment deleted successfully' });
+    } catch (err) {
+        console.error(`Error deleting gym and equipment: ${err}`);
+        return res.status(500).json({ message: 'Server error. Failed to delete gym and equipment' });
+    }
+});
 
 // Create Equipment
 app.post('/api/create-equipment', async (req, res) => {
@@ -341,14 +402,36 @@ app.post('/api/create-equipment', async (req, res) => {
 });
 
 // Get Gyms (calls gRPC service from the API call)
-app.get('/api/get-gyms', async (req, res) => {
-    occupancyClient.GetGyms({}, (error, response) => {
-        if (error) {
-            console.error('Error fetching gyms via gRPC:', error);
-            return res.status(500).send('Failed to fetch gyms.'); // Use return to prevent multiple responses
-        }
-        res.status(200).json(response.gyms); // Ensure only one response is sent
-    });
+// app.get('/api/get-gyms', async (req, res) => {
+//     occupancyClient.GetGyms({}, (error, response) => {
+//         if (error) {
+//             console.error('Error fetching gyms via gRPC:', error);
+//             return res.status(500).send('Failed to fetch gyms.'); // Use return to prevent multiple responses
+//         }
+//         res.status(200).json(response.gyms); // Ensure only one response is sent
+//     });
+// });
+
+/*
+ *  END OF API FUNCTIONS
+ */
+
+
+
+/*
+ *  gRPC SECTION
+ */
+
+// Start occupancy gRPC server
+const grpcServer = new grpc.Server();
+grpcServer.addService(occupancyProto.service, { 
+    GetGyms : getGyms,
+    // GetAllBookings: getAllBookings,  //fetch all bookings for admin overview to see all booking status
+    EditGym: editGym,  // Add edit gym handler
+    DeleteGym: deleteGym,  // Add delete gym handler
+});
+grpcServer.bindAsync('0.0.0.0:50053', grpc.ServerCredentials.createInsecure(), () => {
+    console.log('gRPC server running at http://0.0.0.0:50053');
 });
 
 // Edit Gym via gRPC
@@ -376,7 +459,6 @@ async function editGym(call, callback) {
 }
 
 // Delete Gym via gRPC 
-
 async function deleteGym(call, callback) {
     const { gymID } = call.request;
 
@@ -397,64 +479,6 @@ async function deleteGym(call, callback) {
     }
 }
 
-// Edit Gym
-app.put('/api/edit-gym/:gymID', async (req, res) => {
-    const gymID = parseInt(req.params.gymID);
-    const { gymName, maxCap } = req.body;
-
-    if (!gymName || !maxCap) {
-        return res.status(400).json({ message: 'All fields are required' });
-    }
-
-    try {
-        const updateResult = await gymsCollection.updateOne(
-            { gymID: gymID },
-            { $set: { gymName: gymName, maxCap: parseInt(maxCap) } }
-        );
-
-        if (updateResult.modifiedCount === 0) {
-            return res.status(404).json({ message: 'Gym not found' });
-        }
-
-        console.log(`Gym updated with gymID: ${gymID}`);
-        return res.sendStatus(200);
-    } catch (err) {
-        console.error(`Error updating gym: ${err}`);
-        return res.status(500).json({ message: 'Server error. Failed to update gym' });
-    }
-});
-
-// Delete Gym
-app.delete('/api/delete-gym/:gymID', async (req, res) => {
-    const gymID = parseInt(req.params.gymID);
-
-    try {
-        // First, delete all equipment associated with this gymID
-        const deleteEquipmentResult = await equipmentCollection.deleteMany({ gymID: gymID });
-
-        if (deleteEquipmentResult.deletedCount === 0) {
-            console.log(`No equipment found for gymID: ${gymID}`);
-        } else {
-            console.log(`Deleted ${deleteEquipmentResult.deletedCount} pieces of equipment associated with gymID: ${gymID}`);
-        }
-
-        // Then delete the gym
-        const deleteGymResult = await gymsCollection.deleteOne({ gymID: gymID });
-
-        if (deleteGymResult.deletedCount === 0) {
-            return res.status(404).json({ message: 'Gym not found' });
-        }
-
-        console.log(`Gym deleted with gymID: ${gymID}`);
-        return res.status(200).json({ message: 'Gym and associated equipment deleted successfully' });
-    } catch (err) {
-        console.error(`Error deleting gym and equipment: ${err}`);
-        return res.status(500).json({ message: 'Server error. Failed to delete gym and equipment' });
-    }
-});
-
-
-
 // Get all gyms (gRPC)
 async function getGyms (call, callback) {
     try{
@@ -464,22 +488,14 @@ async function getGyms (call, callback) {
         callback({
         code: grpc.status.INTERNAL,
         details: 'Error fetching gyms list',
-      });
+        });
     }
-  };
+}
+
+/*
+ *  END OF gRPC SECTION
+ */
 
 app.listen(PORT, () => {
     console.log(`Occupancy service running on port ${PORT}`);
-});
-
-// Start occupancy gRPC server
-const grpcServer = new grpc.Server();
-grpcServer.addService(occupancyProto.service, { 
-  GetGyms : getGyms,
-  GetAllBookings: getAllBookings,  //fetch all bookings for admin overview to see all booking status
-  EditGym: editGym,  // Add edit gym handler
-  DeleteGym: deleteGym,  // Add delete gym handler
-});
-grpcServer.bindAsync('0.0.0.0:50053', grpc.ServerCredentials.createInsecure(), () => {
-  console.log('gRPC server running at http://0.0.0.0:50053');
 });
