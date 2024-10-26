@@ -15,21 +15,53 @@ services:
       timeout: 5s
       retries: 5
 
-  equipment-tracking-service:
+  # "I comment this out because the files are not in the repo lol" -felix
+  # equipment-tracking-service:
+  #   build:
+  #     context: ./server/equipment-tracking-service
+  #   container_name: equipment-tracking-service
+  #   depends_on:
+  #     mqtt-broker:
+  #       condition: service_healthy
+  #   environment:
+  #     - MQTT_BROKER_URL=mqtt://mqtt-broker:1883
+  #   networks:
+  #     - mqtt-network
+  
+  user-service:
     build:
-      context: ./server/equipment-tracking-service
-    container_name: equipment-tracking-service
-    depends_on:
-      mqtt-broker:
-        condition: service_healthy
-    environment:
-      - MQTT_BROKER_URL=mqtt://mqtt-broker:1883
+      context: ./server/user-service
+    ports:
+      - "5001:5001"
+      - "50051:50051"
     networks:
-      - mqtt-network
+      - app-network
+
+  booking-service:
+    build:
+      context: ./server/booking-service
+    ports:
+      - "5002:5002"
+      - "50052:50052"
+    networks:
+      - app-network
+
+  occupancy-service:
+    build:
+      context: ./server/occupancy-service
+    ports:
+      - "5003:5003"
+      - "50053:50053"
+    networks:
+      - app-network
 
 networks:
   mqtt-network:
     driver: bridge
+  app-network:
+    driver: bridge
 
 volumes:
+  shared-proto:
+    driver: local
   mosquitto_data:

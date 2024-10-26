@@ -39,25 +39,25 @@ const packageDefinitionBooking = protoLoader.loadSync(PROTO_PATH_BOOKING, {});
 const bookingProto = grpc.loadPackageDefinition(packageDefinitionBooking).BookingService;
 
 // gRPC client setup for user-service
-const PROTO_PATH = path.join(__dirname, '../user-service/user.proto');
+const PROTO_PATH = path.join(__dirname, 'user.proto');
 const packageDefinition = protoLoader.loadSync(PROTO_PATH, {});
 const userProto = grpc.loadPackageDefinition(packageDefinition).UserService;
 
 // Create a gRPC client for user-service
-const userClient = new userProto('localhost:50051', grpc.credentials.createInsecure());
+const userClient = new userProto('user-service:50051', grpc.credentials.createInsecure());
 
 // gRPC server setup for occupancy-service
-const PROTO_PATH_OCCUPANCY = path.join(__dirname, '../occupancy-service/occupancy.proto');
+const PROTO_PATH_OCCUPANCY = path.join(__dirname, 'occupancy.proto');
 const packageDefinitionOccupancy = protoLoader.loadSync(PROTO_PATH_OCCUPANCY, {});
 const occupancyProto = grpc.loadPackageDefinition(packageDefinitionOccupancy).OccupancyService;
 
 // Create a gRPC client for occupancy-service
-const occupancyClient = new occupancyProto('localhost:50053', grpc.credentials.createInsecure());
+const occupancyClient = new occupancyProto('occupancy-service:50053', grpc.credentials.createInsecure());
 
 // Create a gRPC client for booking-service
 // REMOVE THIS WHEN REMOVING EXPRESS ROUTES (this is so that the express routes can call the gRPC methods)
 // in future it calls the gRPC methods directly, not through express routes
-const bookingClient = new bookingProto('localhost:50052', grpc.credentials.createInsecure());
+const bookingClient = new bookingProto('booking-service:50052', grpc.credentials.createInsecure());
 
 // Function to call user gRPC to convert token to user
 function getUserFromToken(token) {
@@ -261,6 +261,7 @@ async function createBooking(call, callback) {
     const bookingsCollection = db.collection('bookings');
     const bookingsQuotaCollection = db.collection('bookingsQuota');
     const { date, slot, gymId } = call.request;
+    console.log(slot);
     const gymIdInt = parseInt(gymId);
 
     // Check for duplicate booking
@@ -278,6 +279,7 @@ async function createBooking(call, callback) {
       });
     }
 
+
     // Use findOneAndUpdate to check and update the quota atomically
     const quotaUpdate = await bookingsQuotaCollection.findOneAndUpdate(
       { gymId: gymIdInt, date: date },
@@ -290,7 +292,8 @@ async function createBooking(call, callback) {
       }
     );
 
-    if (quotaUpdate[slot] > 10) {
+
+    if (quotaUpdate != null && quotaUpdate[slot] >= 10) {
       // If slot quota exceeded, roll back the increment
       await bookingsQuotaCollection.updateOne(
         { gymId: gymIdInt, date: date },
@@ -305,6 +308,8 @@ async function createBooking(call, callback) {
     // Proceed to create the booking
     const booking = { ...call.request, user: user.username, gymId: gymIdInt, role: user.role, id: Math.floor(Math.random() * 1000) };
     await bookingsCollection.insertOne(booking);
+
+    console.log("check4")
 
     callback(null, booking);
   } catch (error) {

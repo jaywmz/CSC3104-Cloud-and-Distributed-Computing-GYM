@@ -2,6 +2,7 @@
 node_modules/
 server/booking-service/node_modules/
 server/user-service/node_modules/
+server/occupancy-service/node_modules/
 client/gym-booking/node_modules/
 
 # Ignore environment files

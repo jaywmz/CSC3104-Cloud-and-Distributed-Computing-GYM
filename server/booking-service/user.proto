@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+service UserService {
+  rpc GetUser (UserRequest) returns (UserResponse);
+  rpc GetUserByRole (RoleRequest) returns (UserListResponse);
+  rpc GetAllUsers (Empty) returns (UserListResponse);
+  rpc GetUserFromToken (Token) returns (UserRequest);
+}
+
+message UserRequest {
+  string username = 1;
+  string role = 2;
+}
+
+message RoleRequest {
+  string role = 1;
+}
+
+message User {
+  string username = 1;
+  string email = 2;
+  string role = 3;
+}
+
+message UserResponse {
+  string username = 1;
+  string email = 2;
+  string role = 3;
+}
+
+message UserListResponse {
+  repeated User users = 1;
+}
+
+message Token {
+  string token = 1;
+}
+
+message Empty {}

@@ -33,17 +33,17 @@ const equipmentCollection = equipmentDB.collection("equipment");
 
 /* gRPC SET UP */
 // gRPC client setup for user-service
-const PROTO_PATH = path.join(__dirname, '../user-service/user.proto');
+const PROTO_PATH = path.join(__dirname, 'user.proto');
 const packageDefinition = protoLoader.loadSync(PROTO_PATH, {});
 const userProto = grpc.loadPackageDefinition(packageDefinition).UserService;
-const userClient = new userProto('localhost:50051', grpc.credentials.createInsecure());
+const userClient = new userProto('user-service:50051', grpc.credentials.createInsecure());
 
 /*gRPC SET UP */
 // gRPC server setup for booking-service
-const PROTO_PATH_BOOKING = path.join(__dirname, '../booking-service/booking.proto');
+const PROTO_PATH_BOOKING = path.join(__dirname, 'booking.proto');
 const packageDefinitionBooking = protoLoader.loadSync(PROTO_PATH_BOOKING, {});
 const bookingProto = grpc.loadPackageDefinition(packageDefinitionBooking).BookingService;
-const bookingClient = new bookingProto('localhost:50052', grpc.credentials.createInsecure());
+const bookingClient = new bookingProto('booking-service:50052', grpc.credentials.createInsecure());
 
 // gRPC server setup for occupancy-service
 const PROTO_PATH_OCCUPANCY = path.join(__dirname, 'occupancy.proto');
@@ -53,7 +53,7 @@ const occupancyProto = grpc.loadPackageDefinition(packageDefinitionOccupancy).Oc
 // Create a gRPC client for occupancy-service
 // REMOVE THIS WHEN REMOVING EXPRESS ROUTES (this is so that the express routes can call the gRPC methods)
 // in future it calls the gRPC methods directly, not through express routes
-const occupancyClient = new occupancyProto('localhost:50053', grpc.credentials.createInsecure());
+const occupancyClient = new occupancyProto('occupancy-service:50053', grpc.credentials.createInsecure());
 
 /* MQTT SET UP */
 // Connect to the MQTT broker
