@@ -20,25 +20,31 @@ This section explains the overall organization of the project and how different 
 |   |-- booking-service/            // Booking microservice
 |       |-- server.js               // Main server code for handling bookings and gRPC
 |       |-- booking.proto           // gRPC protocol definition for booking service
-|       |-- node_modules/           // Dependencies for the booking service
+|       |-- occupancy.proto         // gRPC protocol definition for occupancy service
+|       |-- user.proto              // gRPC protocol definition for user service
 |       |-- package.json            // Backend dependencies for booking service
 |       |-- .env                    // Environment variables for booking service
+|       |-- Dockerfile              // Docker commands for the service image
 |   
 |   |-- occupancy-service/          // Occupancy microservice (handling gym occupancy data)
 |       |-- mqttDummyPublisher.js   // MQTT dummy publisher for occupancy updates
-|       |-- server.js               // Main server code for occupancy handling (if needed)
+|       |-- server.js               // Main server code for occupancy handling
+|       |-- booking.proto           // gRPC protocol definition for booking service
 |       |-- occupancy.proto         // gRPC protocol definition for occupancy service
-|       |-- node_modules/           // Dependencies for occupancy service
+|       |-- user.proto              // gRPC protocol definition for user service
 |       |-- package.json            // Backend dependencies for occupancy service
 |       |-- .env                    // Environment variables for occupancy service
+|       |-- Dockerfile              // Docker commands for the service image
 |   
 |   |-- user-service/               // User microservice for authentication
 |       |-- server.js               // Main server code for handling user authentication
 |       |-- routes/                 // API routes for user service (register, login, etc.)
+|       |-- booking.proto           // gRPC protocol definition for booking service
+|       |-- occupancy.proto         // gRPC protocol definition for occupancy service
 |       |-- user.proto              // gRPC protocol definition for user service
-|       |-- node_modules/           // Dependencies for user service
 |       |-- package.json            // Backend dependencies for user service
 |       |-- .env                    // Environment variables for user service
+|       |-- Dockerfile              // Docker commands for the service image
 |
 |-- mosquitto_config/           // Mosquitto MQTT broker configuration files
 |   |-- mosquitto.conf          // Configuration for Mosquitto broker
@@ -48,46 +54,15 @@ This section explains the overall organization of the project and how different 
 |-- docker-compose.yml              // Docker Compose file for managing multiple microservices
 ```
 # Steps to Set Up and Run the Project:
-# 1. Install Dependencies:
-In each microservice folder (booking-service, occupancy-service, user-service), and the frontend folder (gym-booking), install the required dependencies by running:
-- npm install
+# 1. Creating the docker images
+Ensure that docker engine is running, either through CLI or Docker Desktop
+In the main folder (same folder as docker-compose-yaml), creating and running the containers:
+- docker-compose up --build
 
-Do this for the following folders:
-- client/gym-booking/
-- server/booking-service/
-- server/user-service/
+To remove of all containers, images and volumes:
+- docker-compose down -v
 
-  In the microservice folder (Occupancy-service), install the dependencies:
-  -npm install mqtt
-
-
-# 2. Run the User Service:
-Navigate to the user-service folder:
-- cd server/user-service
-
-Start the server:
-- node server.js
-- This will start the user microservice on http://localhost:5001 and also start the gRPC service on port 50051.
-
-# 3. Run the Booking Service:
-Navigate to the booking-service folder:
-- cd server/booking-service
-
-Start the server:
-- node server.js
-- This will start the booking microservice on http://localhost:5002 and communicate with the user-service via gRPC.
-
-# 5. Run the Occupancy Service:
-Navigate to the occupancy-service folder:
-- cd server/occupancy-service
-
-Start the server:
-- node server.js
-- This will start the occupancy microservice on http://localhost:5003 and communicate with the user-service via gRPC and connect to the mqtt broker.
-- Open another command prompt at the occupancy microservice folder, and run node mqttDummyPublish.js to simulate as IoT devices publishing data to the database.
-
-
-# 6. Run the Frontend (Gym Booking):
+# 2. Run the Frontend (Gym Booking):
 Navigate to the gym-booking folder:
 - cd client/gym-booking
 
@@ -95,19 +70,9 @@ Start the React frontend:
 - npm start
 - This will start the React frontend on http://localhost:3000.
 
-# 7. Interacting with the System:
-Register a User:
-- Go to http://localhost:3000/register.
-- Create a new user by providing a username, password, and role (either user or admin).
-
-Log In:
-- Go to http://localhost:3000/login.
-- Log in using the registered user credentials.
-
-Create a Booking:
-- After logging in, go to http://localhost:3000/bookings.
-- Create a new gym booking.
-- The booking service will validate the user through gRPC with the user service and store the booking in the database.
+# 3. Interacting with the System:
+Open a browser:
+- Go to http://localhost:3000.
 
 # Explanation of Services:
 User-Service:
