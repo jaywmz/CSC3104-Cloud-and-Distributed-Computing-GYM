@@ -1,8 +1,8 @@
 const mqtt = require('mqtt');
 const { MongoClient, ServerApiVersion } = require('mongodb');
 
-// Connect to your MQTT broker
-const client = mqtt.connect('mqtt://localhost:1883');
+// Connect to a public MQTT broker (HiveMQ)
+const client = mqtt.connect('mqtt://broker.hivemq.com:1883');
 
 // MongoDB connection
 const uri = "mongodb+srv://leooh29:DoHTA3c5W08GHGQq@occupancydb.xq4hb.mongodb.net/?retryWrites=true&w=majority&appName=OccupancyDB";
@@ -14,8 +14,9 @@ const mongoClient = new MongoClient(uri, {
     }
 });
 
+// Connect to the MQTT broker and MongoDB
 client.on('connect', async () => {
-    console.log('Connected to MQTT broker');
+    console.log('Connected to public MQTT broker (HiveMQ)');
 
     // Connect to MongoDB
     try {
@@ -45,7 +46,7 @@ client.on('connect', async () => {
                     inUse: inUse // Randomly set inUse status with higher probability of true
                 };
 
-                // Publish the dummy data to the MQTT broker
+                // Publish the dummy data to the public MQTT broker
                 client.publish('gym/equipment/usage', JSON.stringify(dummyData), () => {
                     console.log('Dummy data sent:', dummyData);
                 });
@@ -61,4 +62,9 @@ client.on('connect', async () => {
     } catch (err) {
         console.error('Failed to connect to MongoDB:', err);
     }
+});
+
+// Handle MQTT connection errors
+client.on('error', (err) => {
+    console.error('MQTT connection error:', err);
 });
