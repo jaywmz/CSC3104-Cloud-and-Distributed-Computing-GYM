@@ -56,8 +56,8 @@ const occupancyProto = grpc.loadPackageDefinition(packageDefinitionOccupancy).Oc
 const occupancyClient = new occupancyProto('occupancy-service:50053', grpc.credentials.createInsecure());
 
 /* MQTT SET UP */
-// Connect to the MQTT broker
-const mqttClient = mqtt.connect('mqtt://localhost:1883');
+// Connect to the public MQTT broker (HiveMQ)
+const mqttClient = mqtt.connect('mqtt://broker.hivemq.com:1883');
 
 /* WebSocket SET UP */
 // Create WebSocket server
@@ -77,7 +77,7 @@ function broadcast(data) {
 }
 
 mqttClient.on('connect', () => {
-    console.log('Connected to MQTT broker');
+    console.log('Connected to public MQTT broker (HiveMQ)');
     mqttClient.subscribe('gym/equipment/usage', (err) => {
         if (!err) {
             console.log('Subscribed to gym/equipment/usage');
