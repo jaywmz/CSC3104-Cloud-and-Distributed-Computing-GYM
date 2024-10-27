@@ -1,39 +1,10 @@
 services:
-  mqtt-broker:
-    image: eclipse-mosquitto:2
-    container_name: mqtt-broker
-    ports:
-      - "1883:1883"
-    networks:
-      - mqtt-network
-    volumes:
-      - ./mosquitto_config/mosquitto.conf:/mosquitto/config/mosquitto.conf
-      - mosquitto_data:/mosquitto/data
-    healthcheck:
-      test: ["CMD", "mosquitto_pub", "-h", "localhost", "-t", "healthcheck", "-m", "checking"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # "I comment this out because the files are not in the repo lol" -felix
-  # equipment-tracking-service:
-  #   build:
-  #     context: ./server/equipment-tracking-service
-  #   container_name: equipment-tracking-service
-  #   depends_on:
-  #     mqtt-broker:
-  #       condition: service_healthy
-  #   environment:
-  #     - MQTT_BROKER_URL=mqtt://mqtt-broker:1883
-  #   networks:
-  #     - mqtt-network
-  
   user-service:
     build:
       context: ./server/user-service
     ports:
       - "5001:5001"
-      - "50051:50051"
+      - "50051:50051"  # gRPC port for user-service
     networks:
       - app-network
 
@@ -42,7 +13,7 @@ services:
       context: ./server/booking-service
     ports:
       - "5002:5002"
-      - "50052:50052"
+      - "50052:50052"  # gRPC port for booking-service
     networks:
       - app-network
 
@@ -50,18 +21,16 @@ services:
     build:
       context: ./server/occupancy-service
     ports:
-      - "5003:5003"
-      - "50053:50053"
+      - "5003:5003"    # HTTP port for occupancy-service
+      - "50053:50053"  # gRPC port for occupancy-service
+      - "8080:8080"    # WebSocket port for real-time updates
     networks:
       - app-network
 
 networks:
-  mqtt-network:
-    driver: bridge
   app-network:
     driver: bridge
 
 volumes:
   shared-proto:
     driver: local
-  mosquitto_data:
