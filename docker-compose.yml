@@ -27,6 +27,22 @@ services:
     networks:
       - app-network
 
+  # Client service to serve the frontend in development mode
+  client:
+    build:
+      context: ./client/gym-booking  # Path to the Dockerfile for the client
+    command: npm start
+    ports:
+      - "80:3000"  # Map host port 80 to container port 3000
+    networks:
+      - app-network
+    volumes:
+      - ./client/gym-booking:/app  # Enable hot reloading by mapping local files
+    depends_on:
+      - user-service
+      - booking-service
+      - occupancy-service
+
 networks:
   app-network:
     driver: bridge
