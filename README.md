@@ -29,6 +29,7 @@ This section explains the overall organization of the project and how different 
 |   |-- occupancy-service/          // Occupancy microservice (handling gym occupancy data)
 |       |-- mqttDummyPublisher.js   // MQTT dummy publisher for occupancy updates
 |       |-- server.js               // Main server code for occupancy handling
+|       |-- entrypoint.sh            //Helps to run both the server and mqttDummyPublisher.js script at the start of application
 |       |-- booking.proto           // gRPC protocol definition for booking service
 |       |-- occupancy.proto         // gRPC protocol definition for occupancy service
 |       |-- user.proto              // gRPC protocol definition for user service
@@ -45,10 +46,6 @@ This section explains the overall organization of the project and how different 
 |       |-- package.json            // Backend dependencies for user service
 |       |-- .env                    // Environment variables for user service
 |       |-- Dockerfile              // Docker commands for the service image
-|
-|-- mosquitto_config/           // Mosquitto MQTT broker configuration files
-|   |-- mosquitto.conf          // Configuration for Mosquitto broker
-|
 |-- .gitignore                      // Ignored files/folders for the entire project
 |-- README.md                       // Project documentation
 |-- docker-compose.yml              // Docker Compose file for managing multiple microservices
