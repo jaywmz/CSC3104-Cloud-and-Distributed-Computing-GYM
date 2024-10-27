@@ -13,8 +13,8 @@ RUN npm install
 # Copy the rest of the application files
 COPY . .
 
-# Expose the ports for both Express and gRPC
-EXPOSE 5003 50053
+# Expose the ports for Express (5003), gRPC (50053), and WebSocket (8080)
+EXPOSE 5003 50053 8080
 
 # Command to run the application
 CMD ["node", "server.js"]
