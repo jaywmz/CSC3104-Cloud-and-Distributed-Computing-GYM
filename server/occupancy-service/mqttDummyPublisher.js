@@ -24,19 +24,18 @@ client.on('connect', async () => {
         const equipmentCollection = mongoClient.db('GymEquipment').collection('equipment');
         console.log('Connected to MongoDB');
 
-        // Fetch all equipment items once
-        const allEquipment = await equipmentCollection.find({}).toArray();
-        if (allEquipment.length === 0) {
-            console.log('No equipment found in the database');
-            return;
-        }
-
-        let currentIndex = 0; // To keep track of the current item being updated
-
         // Simulate sending continuous dummy data for equipment usage
         setInterval(async () => {
             try {
-                const currentItem = allEquipment[currentIndex];
+                // Fetch the latest equipment list before each update
+                const allEquipment = await equipmentCollection.find({}).toArray();
+                if (allEquipment.length === 0) {
+                    console.log('No equipment found in the database');
+                    return;
+                }
+
+                // Randomly select an item to update
+                const currentItem = allEquipment[Math.floor(Math.random() * allEquipment.length)];
 
                 // Give a 70% chance for inUse to be true, 30% for false
                 const inUse = Math.random() < 0.7 ? true : false; // 70% true, 30% false
@@ -50,9 +49,6 @@ client.on('connect', async () => {
                 client.publish('gym/equipment/usage', JSON.stringify(dummyData), () => {
                     console.log('Dummy data sent:', dummyData);
                 });
-
-                // Move to the next item in the list, loop back to the start if at the end
-                currentIndex = (currentIndex + 1) % allEquipment.length;
 
             } catch (err) {
                 console.error('Error updating equipment:', err);
