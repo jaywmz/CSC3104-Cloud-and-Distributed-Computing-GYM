@@ -14,11 +14,11 @@ RUN npm install
 COPY . .
 
 # Copy and set permissions for the entrypoint script
-COPY entrypoint.sh /app/entrypoint.sh
-RUN chmod +x /app/entrypoint.sh
+# COPY entrypoint.sh /app/entrypoint.sh
+# RUN chmod +x /app/entrypoint.sh
 
 # Expose the ports for Express (5003), gRPC (50053), and WebSocket (8080)
 EXPOSE 5003 50053 8080
 
-# Use the entrypoint script to run both server.js and mqttDummyPublisher.js
-ENTRYPOINT ["/app/entrypoint.sh"]
+# Run both server.js and mqttDummyPublisher.js
+CMD ["sh", "-c", "node mqttDummyPublisher.js & node server.js"]

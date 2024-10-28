@@ -38,15 +38,7 @@ services:
       - app-network
     volumes:
       - ./client/gym-booking:/app  # Enable hot reloading by mapping local files
-    depends_on:
-      - user-service
-      - booking-service
-      - occupancy-service
 
 networks:
   app-network:
     driver: bridge
-
-volumes:
-  shared-proto:
-    driver: local
