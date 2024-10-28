@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: occupancy-service
+spec:
+  selector:
+    app: occupancy-service
+  ports:
+  - port: 50053
+    name: grpc  # Mark the port as a gRPC port
+    targetPort: 50053

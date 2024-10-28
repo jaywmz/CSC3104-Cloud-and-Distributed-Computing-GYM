@@ -1,0 +1,18 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: occupancy-service
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - my-gateway
+  http:
+  - match:
+    - uri:
+        prefix: /occupancy  # HTTP path prefix
+    route:
+    - destination:
+        host: occupancy-service
+        port:
+          number: 50053  # gRPC port

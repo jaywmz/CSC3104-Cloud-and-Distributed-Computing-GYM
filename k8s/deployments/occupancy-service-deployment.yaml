@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: occupancy-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: occupancy-service
+  template:
+    metadata:
+      labels:
+        app: occupancy-service
+    spec:
+      containers:
+      - name: occupancy-service
+        image: felixzzh/csc3104-team25-occupancy:latest
+        ports:
+        - containerPort: 50053  # Only the gRPC port
