@@ -5,7 +5,6 @@ services:
     ports:
       - "5001:5001"
       - "50051:50051"  # gRPC port for user-service
-    image: csc3104-user-service:latest
     networks:
       - app-network
 
@@ -15,7 +14,6 @@ services:
     ports:
       - "5002:5002"
       - "50052:50052"  # gRPC port for booking-service
-    image: csc3104-booking-service:latest
     networks:
       - app-network
 
@@ -26,22 +24,23 @@ services:
       - "5003:5003"    # HTTP port for occupancy-service
       - "50053:50053"  # gRPC port for occupancy-service
       - "8080:8080"    # WebSocket port for real-time updates
-    image: csc3104-occupancy-service:latest
     networks:
       - app-network
 
-  # Client service to serve the frontend in development mode
-  client:
+  ml-service:
     build:
-      context: ./client/gym-booking  # Path to the Dockerfile for the client
-    command: npm start
+      context: ./server/ml-service
     ports:
-      - "80:3000"  # Map host port 80 to container port 3000
+      - "5004:5004"    # HTTP port for ml-service
     networks:
       - app-network
     volumes:
-      - ./client/gym-booking:/app  # Enable hot reloading by mapping local files
+      - shared-proto:/app/protos  # Optional if sharing proto files with other services
 
 networks:
   app-network:
     driver: bridge
+
+volumes:
+  shared-proto:
+    driver: local
