@@ -67,6 +67,9 @@ Start the React frontend:
 - npm start
 - This will start the React frontend on http://localhost:3000.
 
+Machine Learning Graph Plot:
+- npm install recharts
+
 # 3. Interacting with the System:
 Open a browser:
 - Go to http://localhost:3000.
