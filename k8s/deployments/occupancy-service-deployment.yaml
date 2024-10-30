@@ -1,3 +1,4 @@
+# occupancy-service deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -16,4 +17,34 @@ spec:
       - name: occupancy-service
         image: felixzzh/csc3104-team25-occupancy:latest
         ports:
-        - containerPort: 50053  # Only the gRPC port
+        - containerPort: 5003 # HTTP Port
+        - containerPort: 50053 # gRPC Port
+
+---
+# occupancy-service ClusterIP service for internal gRPC communication
+apiVersion: v1
+kind: Service
+metadata:
+  name: occupancy-service-grpc
+spec:
+  selector:
+    app: occupancy-service
+  ports:
+  - protocol: TCP
+    port: 50053
+    targetPort: 50053
+
+---
+# occupancy-service NodePort service for external HTTP communication
+apiVersion: v1
+kind: Service
+metadata:
+  name: occupancy-service-http
+spec:
+  selector:
+    app: occupancy-service
+  ports:
+  - protocol: TCP
+    port: 5003
+    targetPort: 5003
+  type: LoadBalancer

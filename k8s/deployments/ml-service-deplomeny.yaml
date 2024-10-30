@@ -1,0 +1,35 @@
+# ml-service deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ml-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ml-service
+  template:
+    metadata:
+      labels:
+        app: ml-service
+    spec:
+      containers:
+      - name: ml-service
+        image: felixzzh/csc3104-team25-ml:latest
+        ports:
+        - containerPort: 5004 # HTTP Port
+
+---
+# ml-service NodePort service for external HTTP communication
+apiVersion: v1
+kind: Service
+metadata:
+  name: ml-service-http
+spec:
+  selector:
+    app: ml-service
+  ports:
+  - protocol: TCP
+    port: 5004
+    targetPort: 5004
+  type: LoadBalancer

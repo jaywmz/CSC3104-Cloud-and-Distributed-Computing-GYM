@@ -10,7 +10,14 @@ const mqtt = require('mqtt'); // Add MQTT library
 const WebSocket = require('ws'); // Add WebSocket library
 
 const app = express();
-app.use(cors());
+// Configure CORS options if needed, for example:
+const corsOptions = {
+    origin: '*',  // Use '*' to allow all origins, or specify an array of allowed origins
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+};
+
+app.use(cors(corsOptions));
 app.use(bodyParser.json());
 const PORT = process.env.PORT || 5003;
 
@@ -19,9 +26,9 @@ const { MongoClient, ServerApiVersion } = require('mongodb');
 const uri = process.env.MONGO_URI || "mongodb+srv://leooh29:DoHTA3c5W08GHGQq@occupancydb.xq4hb.mongodb.net/?retryWrites=true&w=majority&appName=OccupancyDB";
 const client = new MongoClient(uri, {
     serverApi: {
-      version: ServerApiVersion.v1,
-      strict: true,
-      deprecationErrors: true,
+        version: ServerApiVersion.v1,
+        strict: true,
+        deprecationErrors: true,
     }
 });
 client.connect();
@@ -36,14 +43,14 @@ const equipmentCollection = equipmentDB.collection("equipment");
 const PROTO_PATH = path.join(__dirname, 'user.proto');
 const packageDefinition = protoLoader.loadSync(PROTO_PATH, {});
 const userProto = grpc.loadPackageDefinition(packageDefinition).UserService;
-const userClient = new userProto('user-service:50051', grpc.credentials.createInsecure());
+const userClient = new userProto('user-service-grpc:50051', grpc.credentials.createInsecure());
 
 /*gRPC SET UP */
 // gRPC server setup for booking-service
 const PROTO_PATH_BOOKING = path.join(__dirname, 'booking.proto');
 const packageDefinitionBooking = protoLoader.loadSync(PROTO_PATH_BOOKING, {});
 const bookingProto = grpc.loadPackageDefinition(packageDefinitionBooking).BookingService;
-const bookingClient = new bookingProto('booking-service:50052', grpc.credentials.createInsecure());
+const bookingClient = new bookingProto('booking-service-grpc:50052', grpc.credentials.createInsecure());
 
 // gRPC server setup for occupancy-service
 const PROTO_PATH_OCCUPANCY = path.join(__dirname, 'occupancy.proto');
@@ -53,7 +60,7 @@ const occupancyProto = grpc.loadPackageDefinition(packageDefinitionOccupancy).Oc
 // Create a gRPC client for occupancy-service
 // REMOVE THIS WHEN REMOVING EXPRESS ROUTES (this is so that the express routes can call the gRPC methods)
 // in future it calls the gRPC methods directly, not through express routes
-const occupancyClient = new occupancyProto('occupancy-service:50053', grpc.credentials.createInsecure());
+const occupancyClient = new occupancyProto('occupancy-service-grpc:50053', grpc.credentials.createInsecure());
 
 /* MQTT SET UP */
 // Connect to the public MQTT broker (HiveMQ)
@@ -154,7 +161,7 @@ function getUserFromToken(token) {
 // Checks whether a check-in record containing a given username already exists in DB
 async function findCheckIn(username) {
     try {
-        const record = await checkedInCollection.findOne({ "username" : username });
+        const record = await checkedInCollection.findOne({ "username": username });
         return !!record;
     } catch (err) {
         console.log(err);
@@ -187,14 +194,14 @@ app.get('/api/all-gyms', async (req, res) => {
         }
 
         for (let i = 0; i < gyms.length; i++) {
-            const numOfGymGoers = await checkedInCollection.countDocuments({ "gymID" : gyms[i].gymID });
+            const numOfGymGoers = await checkedInCollection.countDocuments({ "gymID": gyms[i].gymID });
             gyms[i].occupants = numOfGymGoers;
-            const equipment = await equipmentCollection.find({ "gymID" : gyms[i].gymID }).toArray();
+            const equipment = await equipmentCollection.find({ "gymID": gyms[i].gymID }).toArray();
             gyms[i].equipment = equipment;
         }
 
         return res.status(200).json(gyms);
-    } 
+    }
     catch (err) {
         console.log(`Something went wrong trying to find the documents: ${err}\n`);
         return res.sendStatus(500);
@@ -212,7 +219,7 @@ app.get('/api/gym', async (req, res) => {
             return res.status(200).json(gym);
         } else {
             return res.status(404);
-        }   
+        }
     } catch (err) {
         console.log(`Something went wrong trying to find the documents: ${err}\n`);
         return res.sendStatus(500);
@@ -424,8 +431,8 @@ app.post('/api/create-equipment', async (req, res) => {
 
 // Start occupancy gRPC server
 const grpcServer = new grpc.Server();
-grpcServer.addService(occupancyProto.service, { 
-    GetGyms : getGyms,
+grpcServer.addService(occupancyProto.service, {
+    GetGyms: getGyms,
     // GetAllBookings: getAllBookings,  //fetch all bookings for admin overview to see all booking status
     EditGym: editGym,  // Add edit gym handler
     DeleteGym: deleteGym,  // Add delete gym handler
@@ -480,14 +487,14 @@ async function deleteGym(call, callback) {
 }
 
 // Get all gyms (gRPC)
-async function getGyms (call, callback) {
-    try{
+async function getGyms(call, callback) {
+    try {
         const gyms = await gymsCollection.find().toArray();
-        callback(null, {gyms});
-    }catch(error){
+        callback(null, { gyms });
+    } catch (error) {
         callback({
-        code: grpc.status.INTERNAL,
-        details: 'Error fetching gyms list',
+            code: grpc.status.INTERNAL,
+            details: 'Error fetching gyms list',
         });
     }
 }

@@ -9,7 +9,14 @@ const path = require('path');
 
 // Initialize the Express app
 const app = express();
-app.use(cors());
+// Configure CORS options if needed, for example:
+const corsOptions = {
+  origin: '*',  // Use '*' to allow all origins, or specify an array of allowed origins
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
+
+app.use(cors(corsOptions));
 app.use(bodyParser.json());
 
 // MongoDB connection string
@@ -44,7 +51,7 @@ const packageDefinition = protoLoader.loadSync(PROTO_PATH, {});
 const userProto = grpc.loadPackageDefinition(packageDefinition).UserService;
 
 // Create a gRPC client for user-service
-const userClient = new userProto('user-service:50051', grpc.credentials.createInsecure());
+const userClient = new userProto('user-service-grpc:50051', grpc.credentials.createInsecure());
 
 // gRPC server setup for occupancy-service
 const PROTO_PATH_OCCUPANCY = path.join(__dirname, 'occupancy.proto');
@@ -52,12 +59,12 @@ const packageDefinitionOccupancy = protoLoader.loadSync(PROTO_PATH_OCCUPANCY, {}
 const occupancyProto = grpc.loadPackageDefinition(packageDefinitionOccupancy).OccupancyService;
 
 // Create a gRPC client for occupancy-service
-const occupancyClient = new occupancyProto('occupancy-service:50053', grpc.credentials.createInsecure());
+const occupancyClient = new occupancyProto('occupancy-service-grpc:50053', grpc.credentials.createInsecure());
 
 // Create a gRPC client for booking-service
 // REMOVE THIS WHEN REMOVING EXPRESS ROUTES (this is so that the express routes can call the gRPC methods)
 // in future it calls the gRPC methods directly, not through express routes
-const bookingClient = new bookingProto('booking-service:50052', grpc.credentials.createInsecure());
+const bookingClient = new bookingProto('booking-service-grpc:50052', grpc.credentials.createInsecure());
 
 // Function to call user gRPC to convert token to user
 function getUserFromToken(token) {
