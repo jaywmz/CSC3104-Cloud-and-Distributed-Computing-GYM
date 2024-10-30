@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import '../css/AdminPage.css'; // Link to external CSS for styling
-import { getBookings, deleteBooking } from '../services/bookingService'; // Import deleteBooking service
-import { getAllGyms, createGym, deleteGym } from '../services/occupancyService'; // Import occupancy service calls 
 import { useNavigate } from 'react-router-dom';
+import PredictionGraph from '../components/PredictionGraph'; // Import the PredictionGraph component
+import '../css/AdminPage.css'; // Link to external CSS for styling
+import { deleteBooking, getBookings } from '../services/bookingService'; // Import deleteBooking service
+import { fetchPredictions } from '../services/MLService'; // Import the prediction fetching service
+import { createGym, deleteGym, getAllGyms } from '../services/occupancyService'; // Import occupancy service calls 
+
 
 const AdminPage = () => {
     const [activeTab, setActiveTab] = useState('createGym'); // Manage active tab
@@ -14,6 +17,7 @@ const AdminPage = () => {
     const [purpose, setPurpose] = useState('');
     const [bookings, setBookings] = useState([]); // Store the list of bookings
     const [gyms, setGyms] = useState([]); // Store the list of gyms
+    const [predictions, setPredictions] = useState({});
     const [loadingGyms, setLoadingGyms] = useState(false);
     const [loadingBookings, setLoadingBookings] = useState(false);
     const [error, setError] = useState('');
@@ -56,6 +60,42 @@ const AdminPage = () => {
 
         fetchBookings();
     }, []);
+
+    const fetchAllPredictions = async () => {
+        try {
+            const gyms = await getAllGyms();
+            const predictionsByGym = {};
+
+            for (const gym of gyms) {
+                predictionsByGym[gym.gymID] = [];
+                for (let day = 0; day < 7; day++) {
+                    for (let hour = 0; hour < 24; hour++) {
+                        const prediction = await fetchPredictions(gym.gymID, day, hour);
+                        if (prediction) {
+                            predictionsByGym[gym.gymID].push(prediction);
+                        }
+                    }
+                }
+            }
+            setPredictions(predictionsByGym);
+        } catch (error) {
+            console.error("Error fetching all predictions:", error);
+        }
+    };
+
+    useEffect(() => {
+        if (activeTab === 'viewPredictions') {
+            fetchAllPredictions();
+        }
+    }, [activeTab]);
+
+    const PredictionGraphs = () => (
+        <div className="prediction-graphs">
+            {Object.keys(predictions).map((gymID) => (
+                <PredictionGraph key={gymID} gymID={gymID} predictions={predictions[gymID]} />
+            ))}
+        </div>
+    );
 
     // Handle gym creation
     const handleCreateGym = async () => {
@@ -368,6 +408,14 @@ const AdminPage = () => {
                 </div>
             );
         }
+        else if (activeTab === 'viewPredictions') {
+            return (
+                <div className="form-box">
+                    <h3>Predicted Gym Occupancy</h3>
+                    <PredictionGraphs />
+                </div>
+            );
+        }
     }        
 
     return (
@@ -411,6 +459,12 @@ const AdminPage = () => {
                 >
                     View Bookings
                 </button>
+                <button
+                    className={activeTab === 'viewPredictions' ? 'active' : ''}
+                    onClick={() => setActiveTab('viewPredictions')}
+                >
+                    View Predictions
+                </button>
             </nav>
 
             {/* Render content based on selected tab */}
@@ -423,3 +477,6 @@ const AdminPage = () => {
 };
 
 export default AdminPage;
+
+
+

@@ -27,7 +27,18 @@ services:
     networks:
       - app-network
 
-  # Client service to serve the frontend in development mode
+  ml-service:
+    build:
+      context: ./server/ml-service  # Path to the Dockerfile for the ML service
+    ports:
+      - "5004:5004"    # Expose port for ML service
+    networks:
+      - app-network
+    depends_on:
+      - user-service
+      - booking-service
+      - occupancy-service
+
   client:
     build:
       context: ./client/gym-booking  # Path to the Dockerfile for the client
@@ -38,7 +49,16 @@ services:
       - app-network
     volumes:
       - ./client/gym-booking:/app  # Enable hot reloading by mapping local files
+    depends_on:
+      - user-service
+      - booking-service
+      - occupancy-service
+      - ml-service
 
 networks:
   app-network:
     driver: bridge
+
+volumes:
+  shared-proto:
+    driver: local

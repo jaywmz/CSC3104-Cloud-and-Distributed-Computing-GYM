@@ -67,6 +67,9 @@ Start the React frontend:
 - npm start
 - This will start the React frontend on http://localhost:3000.
 
+Machine Learning Graph Plot:
+- npm install recharts
+
 # 3. Interacting with the System:
 Open a browser:
 - Go to http://localhost:3000.
@@ -95,3 +98,43 @@ Points to Emphasize for the Team:
 - Each service runs independently, and they communicate via gRPC.
 - The user-service and booking-service both connect to MongoDB Atlas for data storage.
 - The React frontend uses Axios to interact with the backend services via REST APIs.
+
+
+# Running Kubernete cluster
+# 1. Install k3d
+Requirements: Docker, kubectl and chocolatey are required to be installed
+Ensure that the containers are all NOT running BUT your docker engine is running
+Install k3d, a lightweight wrapper to run k3s in Docker (Windows):
+- choco install -y k3d
+(if encounter file access error during install, run the terminal in Administrator mode)
+
+Check if kubectl is installed:
+- kubectl version --client
+
+# 2. Create the k3d kubernetes cluster:
+Create the cluster, the cluster will listen to incoming requests at port 8081 (client to cluster):
+- k3d cluster create mycluster --api-port 6550 -p "8081:80@loadbalancer"
+
+You can verify that the cluster is up by:
+- kubectl get nodes
+
+# 3. Install Istio and install the Istio components to your cluster
+istioctl version
+istioctl install --set profile=demo -y
+kubectl label namespace default istio-injection=enabled
+
+# 4. Apply yaml files into k3d cluster
+kubectl apply -f k8s/deployments/
+kubectl apply -f k8s/services/
+kubectl apply -f k8s/istio/
+
+kubectl describe pod <pod-name> -n <namespace>
+
+docker tag csc3104-booking-service:latest felixzzh/csc3104-team25-booking:latest
+docker tag csc3104-user-service:latest felixzzh/csc3104-team25-user:latest
+docker tag csc3104-occupancy-service:latest felixzzh/csc3104-team25-occupancy:latest
+docker push felixzzh/csc3104-team25-booking:latest
+docker push felixzzh/csc3104-team25-user:latest
+docker push felixzzh/csc3104-team25-occupancy:latest
+
+k3d cluster delete mycluster
