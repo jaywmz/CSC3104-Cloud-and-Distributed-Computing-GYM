@@ -1,3 +1,4 @@
+# booking-service deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -16,4 +17,34 @@ spec:
       - name: booking-service
         image: felixzzh/csc3104-team25-booking:latest
         ports:
-        - containerPort: 50052  # Only the gRPC port
+        - containerPort: 5002 # HTTP Port
+        - containerPort: 50052 # gRPC Port
+
+---
+# booking-service ClusterIP service for internal gRPC communication
+apiVersion: v1
+kind: Service
+metadata:
+  name: booking-service-grpc
+spec:
+  selector:
+    app: booking-service
+  ports:
+  - protocol: TCP
+    port: 50052
+    targetPort: 50052
+
+---
+# booking-service NodePort service for external HTTP communication
+apiVersion: v1
+kind: Service
+metadata:
+  name: booking-service-http
+spec:
+  selector:
+    app: booking-service
+  ports:
+  - protocol: TCP
+    port: 5002
+    targetPort: 5002
+  type: LoadBalancer

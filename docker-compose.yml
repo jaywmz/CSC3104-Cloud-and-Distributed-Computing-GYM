@@ -5,6 +5,7 @@ services:
     ports:
       - "5001:5001"
       - "50051:50051"  # gRPC port for user-service
+    image: csc3104-user-service:latest
     networks:
       - app-network
 
@@ -14,6 +15,7 @@ services:
     ports:
       - "5002:5002"
       - "50052:50052"  # gRPC port for booking-service
+    image: csc3104-booking-service:latest
     networks:
       - app-network
 
@@ -24,6 +26,7 @@ services:
       - "5003:5003"    # HTTP port for occupancy-service
       - "50053:50053"  # gRPC port for occupancy-service
       - "8080:8080"    # WebSocket port for real-time updates
+    image: csc3104-occupancy-service:latest
     networks:
       - app-network
 
@@ -32,6 +35,7 @@ services:
       context: ./server/ml-service  # Path to the Dockerfile for the ML service
     ports:
       - "5004:5004"    # Expose port for ML service
+    image: csc3104-ml-service:latest
     networks:
       - app-network
     depends_on:

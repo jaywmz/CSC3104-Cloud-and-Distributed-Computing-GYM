@@ -1,0 +1,50 @@
+# user-service deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: user-service
+  template:
+    metadata:
+      labels:
+        app: user-service
+    spec:
+      containers:
+      - name: user-service
+        image: felixzzh/csc3104-team25-user:latest
+        ports:
+        - containerPort: 5001 # HTTP Port
+        - containerPort: 50051 # gRPC Port
+
+---
+# user-service ClusterIP service for internal gRPC communication
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-service-grpc
+spec:
+  selector:
+    app: user-service
+  ports:
+  - protocol: TCP
+    port: 50051
+    targetPort: 50051
+
+---
+# user-service NodePort service for external HTTP communication
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-service-http
+spec:
+  selector:
+    app: user-service
+  ports:
+  - protocol: TCP
+    port: 5001
+    targetPort: 5001
+  type: LoadBalancer
