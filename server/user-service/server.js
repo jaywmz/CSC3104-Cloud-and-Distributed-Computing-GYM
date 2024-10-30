@@ -13,7 +13,14 @@ const jwt = require('jsonwebtoken');
 const app = express();
 const PORT = process.env.PORT || 5001;
 
-app.use(cors());
+// Configure CORS options if needed, for example:
+const corsOptions = {
+  origin: '*',  // Use '*' to allow all origins, or specify an array of allowed origins
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
+
+app.use(cors(corsOptions));
 app.use(bodyParser.json());
 
 // User Routes
