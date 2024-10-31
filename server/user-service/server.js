@@ -13,6 +13,13 @@ const jwt = require('jsonwebtoken');
 const app = express();
 const PORT = process.env.PORT || 5001;
 
+// (TEST FIX FOR CORS FAILURE ERROR) Grant all origins access to server resources
+app.use(function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*"); // update to match the domain you will make the request from
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  next();
+});
+
 // Configure CORS options if needed, for example:
 const corsOptions = {
   origin: '*',  // Use '*' to allow all origins, or specify an array of allowed origins
