@@ -25,8 +25,16 @@ spec:
           limits:
             cpu: "500m"
             memory: "256Mi"
-      nodeSelector:
-        role: ml
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - ml-service
+              topologyKey: "kubernetes.io/hostname"
 
 ---
 # ml-service NodePort service for external HTTP communication
@@ -53,7 +61,7 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: ml-service
-  minReplicas: 1
+  minReplicas: 2
   maxReplicas: 5
   metrics:
   - type: Resource

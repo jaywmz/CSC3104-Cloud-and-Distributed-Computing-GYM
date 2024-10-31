@@ -26,8 +26,16 @@ spec:
           limits:
             cpu: "500m"
             memory: "256Mi"
-      nodeSelector:
-        role: occupancy
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - occupancy-service
+              topologyKey: "kubernetes.io/hostname"
 
 ---
 # occupancy-service ClusterIP service for internal gRPC communication
@@ -68,7 +76,7 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: occupancy-service
-  minReplicas: 1
+  minReplicas: 2
   maxReplicas: 5
   metrics:
   - type: Resource
