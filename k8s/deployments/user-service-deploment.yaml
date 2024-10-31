@@ -19,6 +19,15 @@ spec:
         ports:
         - containerPort: 5001 # HTTP Port
         - containerPort: 50051 # gRPC Port
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "500m"
+            memory: "256Mi"
+      nodeSelector:
+        role: user
 
 ---
 # user-service ClusterIP service for internal gRPC communication
@@ -48,3 +57,23 @@ spec:
     port: 5001
     targetPort: 5001
   type: LoadBalancer
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: user-service-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: user-service
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 50
