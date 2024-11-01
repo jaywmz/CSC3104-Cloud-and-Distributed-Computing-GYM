@@ -155,7 +155,7 @@ Web-server microservice HPA attributes:
 - Memory Limit: 1Gi
 - minReplicas: 1
 - maxReplicas: 3
-- Target: 50% utilisation (Pods will autoscale when **AVERAGE** Memory utilisation is above 50%)
+- Target: 80% utilisation (Pods will autoscale when **AVERAGE** Memory utilisation is above 80%)
 
 To turn on the load generator:
 - `kubectl apply -f k8s/load/`
