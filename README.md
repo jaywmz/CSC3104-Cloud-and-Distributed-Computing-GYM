@@ -61,33 +61,12 @@ This section explains the overall organization of the project and how different 
 |
 |
 ```
-# Steps to Set Up and Run the Project:
+# Steps to Set Up the Project:
 ## 1. Creating the docker images
 Ensure that docker engine is running, either through CLI or Docker Desktop
-In the main folder (same folder as docker-compose-yaml), creating and running the containers:
-- `docker-compose up --build`
 
-To remove of all containers, images and volumes:
-- `docker-compose down -v`
-
-## 2. Run the Frontend (Gym Booking):
-Navigate to the gym-booking folder:
-- `cd client/gym-booking`
-
-Start the React frontend:
-- `npm start`
-
-This will start the React frontend on http://localhost:3000.
-
-Machine Learning Graph Plot:
-- `npm install recharts`
-
-## 3. Interacting with the System:
-Open a browser:
-- Go to http://localhost:3000.
-
-# Running Kubernetes cluster
-## 1. Install k3d
+## Running Kubernetes cluster
+### 1. Install k3d
 Requirements: 
 - Docker Engine
 - kubectl
@@ -105,29 +84,32 @@ Install k3d, a lightweight wrapper to run k3s in Docker (Windows):
 Check if kubectl is installed:
 - `kubectl version --client`
 
-## 2. Create the k3d kubernetes cluster:
+### 2. Create the k3d kubernetes cluster:
 Create the cluster, the cluster will listen to incoming requests at port 8081 (client to cluster):
-- `k3d cluster create my-cluster --agents 8 --api-port 6443 --port "5001:5001@loadbalancer" --port "5002:5002@loadbalancer" --port "5003:5003@loadbalancer" --port "5004:5004@loadbalancer"`
+- `k3d cluster create my-cluster --agents 8 --api-port 6443 --port "3000:3000@loadbalancer" --port "5001:5001@loadbalancer" --port "5002:5002@loadbalancer" --port "5003:5003@loadbalancer" --port "5004:5004@loadbalancer" --agents 20`
 
-This is to expose port 5001, 5002, 5003 and 5004 respectively, to be used for each microservice
+This is to expose port 3000, 5001, 5002, 5003 and 5004 respectively, to be used for each microservice.
+This will also create 20 agents/worker nodes, to be used for deployment of pods.
+
+Next, we taint the master node so that no pods are scheduled on it:
+- `kubectl taint node k3d-my-cluster-server-0 node-role.kubernetes.io/master=:NoSchedule`
 
 You can verify that the cluster is up by:
 - `kubectl get nodes`
 - `k3d cluster list`
 
-Next, we taint the master node so that no pods are scheduled on it:
-- `kubectl taint node k3d-my-cluster-server-0 node-role.kubernetes.io/master=:NoSchedule`
-
-## 3. Apply yaml files into k3d cluster
+### 3. Apply yaml files into k3d cluster
 To deploy containers onto the cluster:
 - `kubectl apply -f k8s/deployments/`
 
 Each yaml file specifies the image and the configurations for each pod.  
-It configures port 50051, 50052 and 50052 for internal gRPC calls
-and configure port 5001, 5002 and 5003 for calls from the external web client.
+It configures ports 50051, 50052 and 50052 for internal gRPC calls,
+and configures ports 3000, 5001, 5002 and 5003 for passing HTTP messages between web-service and other microservices.
 
 To see the status of your deployed pods:
-- `kubectl get pods`  
+- `kubectl get pods`
+For a more verbose status output:
+- `kubectl get pods -o wide`
 
 (Wait until STATUS RUNNING to be able to use the microservice)
 
@@ -149,20 +131,15 @@ To stop the cluster:
 To delete the cluster:
 - `k3d cluster delete my-cluster`
 
-## 4. Access the Web App
-Run the web application: (during testing, the non-dockerised version was ran)
-- `cd client\gym-booking`
-- `npm install`
-- `npm start`
+### 4. Access the application using web browser
+Open a web browser and go to http://localhost:3000/
 
-Open browser and use as normal.
-
-# Testing Kubernetes Scaling
+### Testing Kubernetes Scaling
 To simulate load on our kubernetes pods and how it scales, we have created an additional pod deployment called load-generator.
 
-Horizontal Pod Autoscaler (HPA) has been enabled on our 3 microservices.
+Horizontal Pod Autoscaler (HPA) has been enabled on our 3 microservices and the web-server service.
 
-HPA attributes:
+3 microservices HPA attributes:
 - Requested CPU: 100m
 - Requested Memory: 128Mi
 - CPU Limit: 500m
@@ -170,6 +147,15 @@ HPA attributes:
 - minReplicas: 2
 - maxReplicas: 3
 - Target: 50% utilisation (Pods will autoscale when **AVERAGE** CPU utilisation is above 50%)
+
+Web-server microservice HPA attributes:
+- Requested CPU: 100m
+- Requested Memory: 512Mi
+- CPU Limit: 500m
+- Memory Limit: 1Gi
+- minReplicas: 1
+- maxReplicas: 3
+- Target: 50% utilisation (Pods will autoscale when **AVERAGE** Memory utilisation is above 50%)
 
 To turn on the load generator:
 - `kubectl apply -f k8s/load/`
@@ -189,7 +175,7 @@ You can change the target of the load-generator at the load-generator.yaml. Repl
 
 It tagets the express server in each microservice.
 
-## Extra
+### Extra
 The following commands is for Felix to push the images onto the Docker Hub repository 
 (if any changes to microservice, need to ask Felix to push to Docker Hub repo as the kubernetes deployment yaml pulls from his repo):
 - `docker tag csc3104-booking-service:latest felixzzh/csc3104-team25-booking:latest`
@@ -203,3 +189,7 @@ The following commands is for Felix to push the images onto the Docker Hub repos
 
 - `docker tag csc3104-ml-service:latest felixzzh/csc3104-team25-ml:latest`
 - `docker push felixzzh/csc3104-team25-ml:latest`
+
+The following commands is for Leo to push the images onto the Docker Hub repository
+- `docker tag csc3104-web-service:latest leooh29/csc3104-web-service:latest`
+- `docker push leooh29/csc3104-web-service:latest`

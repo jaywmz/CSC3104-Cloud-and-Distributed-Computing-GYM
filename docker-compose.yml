@@ -46,6 +46,7 @@ services:
   client:
     build:
       context: ./client/gym-booking  # Path to the Dockerfile for the client
+    image: csc3104-web-service:latest
     command: npm start
     ports:
       - "80:3000"  # Map host port 80 to container port 3000

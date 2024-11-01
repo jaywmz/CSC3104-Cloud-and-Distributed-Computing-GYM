@@ -1,0 +1,87 @@
+# occupancy-service deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-service
+spec:
+  selector:
+    matchLabels:
+      app: web-service
+  template:
+    metadata:
+      labels:
+        app: web-service
+    spec:
+      containers:
+      - name: web-service
+        image: leooh29/csc3104-web-service:latest
+        ports:
+        - containerPort: 80
+        - containerPort: 3000 
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "512Mi"
+          limits:
+            cpu: "500m"
+            memory: "1Gi"
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - web-service
+              topologyKey: "kubernetes.io/hostname"
+
+---
+# occupancy-service ClusterIP service for internal gRPC communication
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-service-clusterip
+spec:
+  type: ClusterIP
+  selector:
+    app: web-service
+  ports:
+  - protocol: TCP
+    port: 3000
+    targetPort: 3000
+
+---
+# occupancy-service LoadBalancer service for external HTTP communication
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-service-loadbalancer
+spec:
+  type: LoadBalancer
+  selector:
+    app: web-service
+  ports:
+  - protocol: TCP
+    port: 3000
+    targetPort: 3000
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: web-service-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: web-service
+  minReplicas: 1
+  maxReplicas: 3
+  metrics:
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
