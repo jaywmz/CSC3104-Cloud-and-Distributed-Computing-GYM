@@ -86,7 +86,7 @@ Check if kubectl is installed:
 
 ### 2. Create the k3d kubernetes cluster:
 Create the cluster, the cluster will listen to incoming requests at port 8081 (client to cluster):
-- `k3d cluster create my-cluster --agents 8 --api-port 6443 --port "3000:3000@loadbalancer" --port "5001:5001@loadbalancer" --port "5002:5002@loadbalancer" --port "5003:5003@loadbalancer" --port "5004:5004@loadbalancer" --agents 20`
+- `k3d cluster create my-cluster --agents 15 --api-port 6443 --port "3000:3000@loadbalancer" --port "5001:5001@loadbalancer" --port "5002:5002@loadbalancer" --port "5003:5003@loadbalancer" --port "5004:5004@loadbalancer"`
 
 This is to expose port 3000, 5001, 5002, 5003 and 5004 respectively, to be used for each microservice.
 This will also create 20 agents/worker nodes, to be used for deployment of pods.
