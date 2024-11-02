@@ -50,14 +50,14 @@ This section explains the overall organization of the project and how different 
 |-- README.md                       // Project documentation
 |-- docker-compose.yml              // Docker Compose file for managing multiple microservices
 |
-|   |-- k8s/
-|       |-- deployments/
-|           |-- booking-service-deploment.yaml
-|           |-- ml-service-deploment.yaml
-|           |-- occupancy-service-deploment.yaml
-|           |-- user-service-deploment.yaml
-|       |-- load/
-|           |-- load-generator.yaml
+|-- k8s/
+|   |-- deployments/
+|       |-- booking-service-deploment.yaml
+|       |-- ml-service-deploment.yaml
+|       |-- occupancy-service-deploment.yaml
+|       |-- user-service-deploment.yaml
+|   -- load/
+|       |-- load-generator.yaml
 |
 |
 ```
