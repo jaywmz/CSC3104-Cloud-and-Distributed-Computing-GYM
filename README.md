@@ -1,5 +1,5 @@
-# Project Structure Overview:
-This section explains the overall organization of the project and how different services (microservices) interact with each other.
+# CSC3104 Cloud and Distributed Computing Mini-Project
+Introducing a Gym Occupancy and Booking System designed to address the issue of overcrowding in gym facilities by leveraging cloud computing and distributed systems for real-time occupancy management and dynamic booking. Utilizing Kubernetes, gRPC, and microservices-based architecture, the system provides a scalable solution that enables gym administrators to monitor and manage occupancy levels and equipment usage effectively. By integrating real-time booking capabilities with simulated occupancy tracking, the system offers a cost-effective, adaptive prototype that facilitates high responsiveness, scalability, and efficient data management, positioning it as a robust alternative to traditional gym management solutions reliant on physical sensor infrastructure.
 
 # Project Folder Structure:
 ```
