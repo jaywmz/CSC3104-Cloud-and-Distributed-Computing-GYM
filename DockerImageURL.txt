@@ -1,0 +1,12 @@
+The following are the links to our public Docker Hub Repositories for our Docker Images:
+User Microservice: https://hub.docker.com/r/felixzzh/csc3104-team25-user
+Booking Microservice: https://hub.docker.com/r/felixzzh/csc3104-team25-booking
+Occupancy Microservice: https://hub.docker.com/r/felixzzh/csc3104-team25-occupancy
+Machine Learning Microservice: https://hub.docker.com/r/felixzzh/csc3104-team25-ml
+Web Client Service: https://hub.docker.com/r/leooh29/csc3104-web-service
+
+When deploying the pods to the Kubernetes cluster, there is NO NEED to build these images as the images will be automatically pulled from the Repositories 
+(as specified in their respective .yaml deployment files)
+
+Alternatively, you can run "docker-compose up --build" to build and run the container images.
+(Run this command in the main folder with the docker-compose.yml)
